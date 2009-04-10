@@ -1,0 +1,6 @@
+edge
+supernode
+*dSYM
+*.o
+*.a
+version.c
