@@ -244,6 +244,7 @@ static void edge_deinit(n2n_edge_t * eee) {
 
 static void readFromIPSocket( n2n_edge_t * eee );
 
+#ifndef BUILD_FRONTEND
 static void help() {
   print_n2n_version();
 
@@ -294,6 +295,7 @@ static void help() {
 
   exit(0);
 }
+#endif
 
 /* *********************************************** */
 
@@ -1147,6 +1149,7 @@ extern int useSyslog;
 #define N2N_NETMASK_STR_SIZE 16 /* dotted decimal 12 numbers + 3 dots */
 
 
+#ifndef BUILD_FRONTEND
 int main(int argc, char* argv[]) {
   int opt, local_port = 0 /* any port */;
   char *tuntap_dev_name = "edge0";
@@ -1445,5 +1448,5 @@ effectiveargv[effectiveargc] = 0;
 
   return(0);
 }
-
+#endif //BUILD_FRONTEND
 
