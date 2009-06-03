@@ -772,13 +772,14 @@ void hexdump(char *buf, u_int len) {
 
 /* *********************************************** */
 
+#ifndef BUILD_FRONTEND
 void print_n2n_version() {
   printf("Welcome to n2n v.%s for %s\n"
          "Built on %s\n"
 	 "Copyright 2007-08 - http://www.ntop.org\n\n",
          version, osName, buildDate);
 }
-
+#endif
 
 
 
