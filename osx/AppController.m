@@ -49,6 +49,8 @@
         // initialize user defaults
         [self initDefaults];
 
+        n2nThread = [[[N2NThread alloc] init] retain];
+
         [[NSNotificationCenter defaultCenter] addObserver:self
                                                  selector:@selector(connectionDidDie:)
                                                      name:NSConnectionDidDieNotification
@@ -64,6 +66,13 @@
     }
 
     return self;
+}
+
+- (void) dealloc
+{
+    [n2nThread release];
+
+    [super dealloc];
 }
 
 @end
