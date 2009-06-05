@@ -132,7 +132,10 @@
     } /* while */
 }
 
-- (void)connect {
+- (void) edgeConnect:(NSNotification *)notification
+{
+    NSLog(@"hello world");
+
     edgeThread = [[NSThread alloc] initWithTarget:self
                                          selector:@selector(threadMethod:)
                                            object:nil];
