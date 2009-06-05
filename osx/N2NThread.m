@@ -13,6 +13,12 @@
 - (void) threadMethod:(id)theObject
 {
     NSLog(@"thread started");
+
+    ipAddress     = [[NSUserDefaults standardUserDefaults] stringForKey:@"ipAddress"];
+    encryptKey    = [[NSUserDefaults standardUserDefaults] stringForKey:@"encryptKey"];
+    communityName = [[NSUserDefaults standardUserDefaults] stringForKey:@"communityName"];
+    supernodeIp   = [[NSUserDefaults standardUserDefaults] stringForKey:@"supernodeIp"];
+
     int local_port = 0 /* any port */;
     char *tuntap_dev_name = "edge0";
     char  netmask[N2N_NETMASK_STR_SIZE]="255.255.255.0";
@@ -25,10 +31,10 @@
 
     int     i;
     char  * linebuffer = NULL;
-    char ip_addr[] = "10.0.0.10";
-    char encrypt_key[] = "encryptme";
-    char community_name[] = "mynetwork";
-    char supernode_ip[] = "flyingseagull.de:1099";
+    char *ip_addr        = [ipAddress cString];
+    char *encrypt_key    = [encryptKey cString];
+    char *community_name = [communityName cString];
+    char *supernode_ip   = [supernodeIp cString];
 
     n2n_edge_t eee; /* single instance for this program */
 
