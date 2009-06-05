@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CustomHeaders</key>
+	<array>
+		<string>Subject</string>
+		<string>From</string>
+		<string>To</string>
+	</array>
+	<key>DismissAfter</key>
+	<integer>10</integer>
+	<key>FontFamily</key>
+	<string>Helvetica</string>
+	<key>FontSize</key>
+	<integer>12</integer>
+	<key>HeaderDetail</key>
+	<integer>1</integer>
+	<key>MailboxDetail</key>
+	<integer>1</integer>
+	<key>Enabled</key>
+	<true/>
+	<key>OpenInSeparateWindow</key>
+	<false/>
+	<key>ShowHeaderTitles</key>
+	<true/>
+	<key>HideInMail</key>
+	<false/>
+	<key>ShowMailbox</key>
+	<true/>
+	<key>QuotationLevels</key>
+	<integer>-1</integer>
+	<key>Transparency</key>
+	<real>0.30</real>
+</dict>
+</plist>

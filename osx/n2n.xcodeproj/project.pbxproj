@@ -14,6 +14,7 @@
 		275730790FD9887000B7ECE5 /* tuntap_osx.c in Sources */ = {isa = PBXBuildFile; fileRef = 2757306F0FD9887000B7ECE5 /* tuntap_osx.c */; };
 		2757307A0FD9887000B7ECE5 /* twofish.c in Sources */ = {isa = PBXBuildFile; fileRef = 275730700FD9887000B7ECE5 /* twofish.c */; };
 		2757307B0FD9887000B7ECE5 /* version.c in Sources */ = {isa = PBXBuildFile; fileRef = 275730710FD9887000B7ECE5 /* version.c */; };
+		275730930FD98CDB00B7ECE5 /* Defaults.plist in Resources */ = {isa = PBXBuildFile; fileRef = 275730920FD98CDB00B7ECE5 /* Defaults.plist */; };
 		8D11072B0486CEB800E47090 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 089C165CFE840E0CC02AAC07 /* InfoPlist.strings */; };
 		8D11072D0486CEB800E47090 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 29B97316FDCFA39411CA2CEA /* main.m */; settings = {ATTRIBUTES = (); }; };
 		8D11072F0486CEB800E47090 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; };
@@ -30,6 +31,7 @@
 		2757306F0FD9887000B7ECE5 /* tuntap_osx.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = tuntap_osx.c; path = ../tuntap_osx.c; sourceTree = SOURCE_ROOT; };
 		275730700FD9887000B7ECE5 /* twofish.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = twofish.c; path = ../twofish.c; sourceTree = SOURCE_ROOT; };
 		275730710FD9887000B7ECE5 /* version.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = version.c; path = ../version.c; sourceTree = SOURCE_ROOT; };
+		275730920FD98CDB00B7ECE5 /* Defaults.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Defaults.plist; sourceTree = "<group>"; };
 		29B97316FDCFA39411CA2CEA /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		29B97324FDCFA39411CA2CEA /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = /System/Library/Frameworks/AppKit.framework; sourceTree = "<absolute>"; };
 		29B97325FDCFA39411CA2CEA /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
@@ -121,6 +123,7 @@
 		29B97317FDCFA39411CA2CEA /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				275730920FD98CDB00B7ECE5 /* Defaults.plist */,
 				8D1107310486CEB800E47090 /* Info.plist */,
 				089C165CFE840E0CC02AAC07 /* InfoPlist.strings */,
 				1DDD58140DA1D0A300B32029 /* MainMenu.xib */,
@@ -182,6 +185,7 @@
 			files = (
 				8D11072B0486CEB800E47090 /* InfoPlist.strings in Resources */,
 				1DDD58160DA1D0A300B32029 /* MainMenu.xib in Resources */,
+				275730930FD98CDB00B7ECE5 /* Defaults.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
