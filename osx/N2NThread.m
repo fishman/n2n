@@ -132,7 +132,7 @@
     } /* while */
 }
 
-- (IBAction)connect:(id)sender {
+- (void)connect {
     edgeThread = [[NSThread alloc] initWithTarget:self
                                          selector:@selector(threadMethod:)
                                            object:nil];
