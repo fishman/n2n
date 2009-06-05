@@ -1,5 +1,5 @@
 //
-//  AppController.h
+//  N2NThread.h
 //  n2n
 //
 //  Created by Reza Jelveh on 6/5/09.
@@ -7,10 +7,8 @@
 //
 
 #import <Cocoa/Cocoa.h>
-#import "n2nThread.h"
 
-@interface AppController : NSObject {
-    N2NThread *n2nThread;
+@interface N2NThread : NSObject {
 }
 
 @end
