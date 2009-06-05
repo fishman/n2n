@@ -9,6 +9,7 @@
 #import "AppController.h"
 
 #define PROTONET_GANESH @"com.protonet.ganesh"
+#define N2N_CONNECT_EDGE @"N2NEdgeConnect"
 
 @implementation AppController
 
@@ -51,6 +52,11 @@
 
         n2nThread = [[[N2NThread alloc] init] retain];
 
+        [[NSDistributedNotificationCenter defaultCenter] addObserver:n2nThread
+                                                            selector:@selector(edgeConnect:)
+                                                                name:N2N_CONNECT_EDGE
+                                                              object:nil];
+
         [[NSNotificationCenter defaultCenter] addObserver:self
                                                  selector:@selector(connectionDidDie:)
                                                      name:NSConnectionDidDieNotification
@@ -60,8 +66,6 @@
                                                                selector:@selector(workspaceDidTerminateApplication:)
                                                                    name:NSWorkspaceDidTerminateApplicationNotification
                                                                  object:nil];
-        [[NSConnection defaultConnection] setRootObject:self];
-        [[NSConnection defaultConnection] registerName:@"n2ndaemon"];
         [[NSRunLoop currentRunLoop] configureAsServer];
     }
 
