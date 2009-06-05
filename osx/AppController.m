@@ -8,13 +8,46 @@
 
 #import "AppController.h"
 
+#define PROTONET_GANESH @"com.protonet.ganesh"
 
 @implementation AppController
 
+
+- (void) initDefaults
+{
+    NSString *path;
+    NSDictionary *dict;
+    path = [[NSBundle mainBundle] pathForResource:@"Defaults" ofType:@"plist"];
+    dict = [NSDictionary dictionaryWithContentsOfFile:path];
+    [[NSUserDefaults standardUserDefaults] registerDefaults:dict];
+}
+
+- (void)connectionDidDie:(id)anArgument
+{
+    [NSApp terminate:self];
+}
+
+/**
+ * Only terminate if requested from the ganesh frontend
+ */
+- (void)workspaceDidTerminateApplication:(NSNotification *)notif
+{
+    id bundle;
+
+    bundle = [[notif userInfo] objectForKey:@"NSApplicationBundleIdentifier"];
+    if ([bundle isEqual:PROTONET_GANESH])
+       [NSApp terminate:self];
+}
+
+/**
+ * register connectiondiddie and terminatenotifications
+ */
 - (id) init
 {
     if (self = [super init]){
         NSLog(@"wassup");
+        // initialize user defaults
+        [self initDefaults];
 
         [[NSNotificationCenter defaultCenter] addObserver:self
                                                  selector:@selector(connectionDidDie:)
