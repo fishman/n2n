@@ -221,7 +221,6 @@ static
 #endif
 void readFromIPSocket( n2n_edge_t * eee );
 
-#ifndef BUILD_FRONTEND
 static void help() {
   print_n2n_version();
 
@@ -272,7 +271,6 @@ static void help() {
 
   exit(0);
 }
-#endif
 
 /* *********************************************** */
 
