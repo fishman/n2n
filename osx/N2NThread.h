@@ -8,7 +8,10 @@
 
 #import <Cocoa/Cocoa.h>
 
+#import "edge.h"
+
 @interface N2NThread : NSObject {
+    NSThread *edgeThread;
 }
 
 @end
