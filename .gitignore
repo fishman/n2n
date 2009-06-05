@@ -4,3 +4,5 @@ supernode
 *.o
 *.a
 version.c
+*.pbxuser
+*.perspectivev3
