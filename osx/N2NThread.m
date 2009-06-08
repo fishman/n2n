@@ -93,6 +93,10 @@
 
         FD_ZERO(&socket_mask);
         FD_SET(eee.sinfo.sock, &socket_mask);
+#ifndef WIN32
+        FD_SET(eee.device.fd, &socket_mask);
+        max_sock = max( eee.sinfo.sock, eee.device.fd );
+#endif
 
         wait_time.tv_sec = SOCKET_TIMEOUT_INTERVAL_SECS; wait_time.tv_usec = 0;
 
@@ -110,6 +114,14 @@
                 readFromIPSocket(&eee);
             }
 
+#ifndef WIN32
+            if(FD_ISSET(eee.device.fd, &socket_mask))
+            {
+                /* Read an ethernet frame from the TAP socket. Write on the IP
+                 * socket. */
+                readFromTAPSocket(&eee);
+            }
+#endif
         }
 
         update_registrations(&eee);
