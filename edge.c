@@ -884,7 +884,10 @@ static int check_received_packet(n2n_edge_t * eee, char *pkt,
  *
  *  REVISIT: fails if more than one packet is waiting to be read.
  */
-static void readFromTAPSocket( n2n_edge_t * eee )
+#ifndef BUILD_FRONTEND
+static
+#endif
+void readFromTAPSocket( n2n_edge_t * eee )
 {
   /* tun -> remote */
   u_char decrypted_msg[2048];
