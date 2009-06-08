@@ -48,11 +48,11 @@
     if(strlen(eee.community_name) > COMMUNITY_LEN)
         eee.community_name[COMMUNITY_LEN] = '\0';
 
-    snprintf(eee.supernode_ip, sizeof(eee.supernode_ip), "%s", supernode_ip);
-    supernode2addr(&eee, eee.supernode_ip);
-
     memset(&(eee.supernode), 0, sizeof(eee.supernode));
     eee.supernode.family = AF_INET;
+
+    snprintf(eee.supernode_ip, sizeof(eee.supernode_ip), "%s", supernode_ip);
+    supernode2addr(&eee, eee.supernode_ip);
 
     if(tuntap_open(&(eee.device), tuntap_dev_name, ip_addr, netmask, device_mac, mtu) < 0)
         return(-1);
@@ -159,7 +159,7 @@
 
 - (void) disconnect
 {
-    [edgeThread exit];
+    [edgeThread cancel];
 #if 0
     send_deregister( &eee, &(eee.supernode));
 
