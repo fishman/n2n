@@ -75,6 +75,9 @@
 
     update_registrations(&eee);
 
+    [[NSDistributedNotificationCenter defaultCenter]
+        postNotification:[NSNotification notificationWithName:@"N2NedgeConnecting" object:nil]];
+
     traceEvent(TRACE_NORMAL, "");
     traceEvent(TRACE_NORMAL, "Ready");
 
