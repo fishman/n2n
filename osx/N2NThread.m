@@ -14,10 +14,12 @@
 {
     NSLog(@"thread started");
 
-    ipAddress     = [[NSUserDefaults standardUserDefaults] stringForKey:@"ipAddress"];
-    encryptKey    = [[NSUserDefaults standardUserDefaults] stringForKey:@"encryptKey"];
-    communityName = [[NSUserDefaults standardUserDefaults] stringForKey:@"communityName"];
-    supernodeIp   = [[NSUserDefaults standardUserDefaults] stringForKey:@"supernodeIp"];
+    NSAutoreleasePool	 *autoreleasePool = [[NSAutoreleasePool alloc] init];
+
+    NSString *ipAddress     = [[NSUserDefaults standardUserDefaults] stringForKey:@"ipAddress"];
+    NSString *encryptKey    = [[NSUserDefaults standardUserDefaults] stringForKey:@"encryptKey"];
+    NSString *communityName = [[NSUserDefaults standardUserDefaults] stringForKey:@"communityName"];
+    NSString *supernodeIp   = [[NSUserDefaults standardUserDefaults] stringForKey:@"supernodeIp"];
 
     int local_port = 0 /* any port */;
     char *tuntap_dev_name = "edge0";
@@ -29,12 +31,10 @@
 
     char * device_mac=NULL;
 
-    int     i;
-    char  * linebuffer = NULL;
-    char *ip_addr        = [ipAddress cString];
-    char *encrypt_key    = [encryptKey cString];
-    char *community_name = [communityName cString];
-    char *supernode_ip   = [supernodeIp cString];
+    const char *ip_addr        = [ipAddress UTF8String];
+    const char *encrypt_key    = [encryptKey UTF8String];
+    const char *community_name = [communityName UTF8String];
+    const char *supernode_ip   = [supernodeIp UTF8String];
 
     n2n_edge_t eee; /* single instance for this program */
 
@@ -77,6 +77,9 @@
 
     traceEvent(TRACE_NORMAL, "");
     traceEvent(TRACE_NORMAL, "Ready");
+
+    // autorelease again
+    [autoreleasePool release];
 
     /* Main loop
      *
