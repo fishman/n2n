@@ -43,7 +43,61 @@
         exit(1);
     }
 
+    // Creating an authorization reference without rights
+    AuthorizationRef myAuthorizationRef;
+    OSStatus myStatus;
+    myStatus = AuthorizationCreate (NULL, kAuthorizationEmptyEnvironment,
+                                    kAuthorizationFlagDefaults, &myAuthorizationRef);
 
+    // Creating an authorization item array
+    AuthorizationItem myItems[2];
+    
+    myItems[0].name = "com.protonet.n2n.myRight1";
+    myItems[0].valueLength = 0;
+    myItems[0].value = NULL;
+    myItems[0].flags = 0;
+    
+    myItems[1].name = "com.protonet.n2n.myRight2";
+    myItems[1].valueLength = 0;
+    myItems[1].value = NULL;
+    myItems[1].flags = 0;
+    
+    // Creating a set of authorization rights
+    AuthorizationRights myRights;
+    myRights.count = sizeof (myItems) / sizeof (myItems[0]);
+    myRights.items = myItems;
+    
+    // Specifying authorization options for authorization
+    AuthorizationFlags myFlags;
+    myFlags = kAuthorizationFlagDefaults |
+        kAuthorizationFlagInteractionAllowed |
+        kAuthorizationFlagExtendRights;
+
+    // Specifying authorization options for partial authorization
+    myFlags = kAuthorizationFlagDefaults |
+        kAuthorizationFlagInteractionAllowed |
+        kAuthorizationFlagExtendRights |
+        kAuthorizationFlagPartialRights;
+    
+    // Authorizing rights
+    myStatus = AuthorizationCopyRights (myAuthorizationRef, &myRights,
+                                        kAuthorizationEmptyEnvironment, myFlags, NULL);
+    
+    // Authorizing partial rights
+    AuthorizationRights *myAuthorizedRights;
+    myStatus = AuthorizationCopyRights (myAuthorizationRef, &myRights,
+                                        kAuthorizationEmptyEnvironment, myFlags,
+                                        &myAuthorizedRights);
+    
+    // Creating an authorization reference with rights
+    myStatus = AuthorizationCreate (&myRights, kAuthorizationEmptyEnvironment,
+                                    myFlags, &myAuthorizationRef);
+    
+    // A one-time authorization call
+    myStatus = AuthorizationCreate (&myRights, kAuthorizationEmptyEnvironment,
+                                    myFlags, NULL);
+    
+    
     eee.community_name = strdup(community_name);
     if(strlen(eee.community_name) > COMMUNITY_LEN)
         eee.community_name[COMMUNITY_LEN] = '\0';
@@ -83,6 +137,13 @@
 
     // autorelease again
     [autoreleasePool release];
+    
+    // Releasing an authorization item array
+    myStatus = AuthorizationFreeItemSet (myAuthorizedRights);
+    
+    // Releasing an authorization reference
+    myStatus = AuthorizationFree (myAuthorizationRef,
+                                  kAuthorizationFlagDestroyRights);
 
     /* Main loop
      *

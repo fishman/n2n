@@ -9,6 +9,6 @@
 	<key>encryptKey</key>
 	<string>encryptme</string>
 	<key>supernodeIp</key>
-	<string>sample.org:123</string>
+	<string>flyingseagull.de:1099</string>
 </dict>
 </plist>
