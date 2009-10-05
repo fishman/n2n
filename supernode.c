@@ -30,7 +30,7 @@ struct tx_stats
 
 static void help() {
   print_n2n_version();
-  printf("supernode -l <listening port> [-v] [-h]\n");
+  printf("supernode -l <listening port> [-v] [-h] [-f]\n");
   exit(0);
 }
 
@@ -167,6 +167,7 @@ static void deregister_peer(struct n2n_packet_header *hdr,
 static const struct option long_options[] = {
   { "community",       required_argument, NULL, 'c' },
   { "listening-port",  required_argument, NULL, 'l' },
+  { "daemon" ,         no_argument,       NULL, 'f' },
   { "help"   ,         no_argument,       NULL, 'h' },
   { "verbose",         no_argument,       NULL, 'v' },
   { NULL,              0,                 NULL,  0  }
@@ -438,6 +439,8 @@ static void startTcpReadThread(int sock_fd) {
 
 /* *********************************************** */
 
+extern int useSyslog;
+
 int main(int argc, char* argv[]) {
   int opt, local_port = 0;
   n2n_sock_info_t udp_sinfo;
@@ -445,10 +448,12 @@ int main(int argc, char* argv[]) {
 
 #ifdef WIN32
   initWin32();
+#else
+  int   fork_as_daemon=0;
 #endif
 
   optarg = NULL;
-  while((opt = getopt_long(argc, argv, "l:vh", long_options, NULL)) != EOF) {
+  while((opt = getopt_long(argc, argv, "l:fvh", long_options, NULL)) != EOF) {
     switch (opt) {
     case 'l': /* local-port */
       local_port = atoi(optarg);
@@ -456,11 +461,22 @@ int main(int argc, char* argv[]) {
     case 'h': /* help */
       help();
       break;
+    case 'f': /* fork as daemon */
+      fork_as_daemon = 1;
+      break;
     case 'v': /* verbose */
       traceLevel = 3;
       break;
     }
   }
+
+#ifndef WIN32
+  if ( fork_as_daemon )
+    {
+      useSyslog=1; /* traceEvent output now goes to syslog. */
+      daemon( 0, 0 );
+    }
+#endif
 
   if(!(local_port))
     help();
