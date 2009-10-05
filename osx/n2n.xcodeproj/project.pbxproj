@@ -9,7 +9,6 @@
 /* Begin PBXBuildFile section */
 		1DDD58160DA1D0A300B32029 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 1DDD58140DA1D0A300B32029 /* MainMenu.xib */; };
 		2708D3350FDF2F9700E45182 /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2708D3340FDF2F9700E45182 /* Security.framework */; };
-		2708D4780FE02C8A00E45182 /* n2n.app in Resources */ = {isa = PBXBuildFile; fileRef = 8D1107320486CEB800E47090 /* n2n.app */; };
 		275730730FD9887000B7ECE5 /* edge.c in Sources */ = {isa = PBXBuildFile; fileRef = 275730690FD9887000B7ECE5 /* edge.c */; };
 		275730740FD9887000B7ECE5 /* minilzo.c in Sources */ = {isa = PBXBuildFile; fileRef = 2757306A0FD9887000B7ECE5 /* minilzo.c */; };
 		275730750FD9887000B7ECE5 /* n2n.c in Sources */ = {isa = PBXBuildFile; fileRef = 2757306B0FD9887000B7ECE5 /* n2n.c */; };
@@ -198,7 +197,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				2708D4780FE02C8A00E45182 /* n2n.app in Resources */,
 				8D11072B0486CEB800E47090 /* InfoPlist.strings in Resources */,
 				1DDD58160DA1D0A300B32029 /* MainMenu.xib in Resources */,
 				275730930FD98CDB00B7ECE5 /* Defaults.plist in Resources */,
@@ -280,7 +278,7 @@
 		C01FCF4F08A954540054247B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
 				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
