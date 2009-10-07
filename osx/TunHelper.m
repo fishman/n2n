@@ -21,12 +21,7 @@
 
 static struct cmsghdr   *cmptr = NULL;  /* malloc'ed first time */
 
-/*
- * Pass a file descriptor to another process.
- * If fd<0, then -fd is sent back instead as the error status.
- */
-int
-send_fd(int fd, int fd_to_send)
+int send_fd(int fd, int fd_to_send)
 {
     struct iovec    iov[1];
     struct msghdr   msg;
@@ -75,7 +70,7 @@ int sock_client(int fd)
 
     len = sizeof(saun.sun_family) + strlen(saun.sun_path);
 
-    if (connect(s, &saun, len) < 0) {
+    if (connect(s, (const struct sockaddr *)&saun, len) < 0) {
         perror("client: connect");
         exit(1);
     }
@@ -85,6 +80,8 @@ int sock_client(int fd)
         exit(1);
     }
     unlink(ADDRESS);
+
+    return 0;
 }
 
 int main (int argc, const char * argv[]) {
