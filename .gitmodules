@@ -1,0 +1,3 @@
+[submodule "osx/libancillary"]
+	path = osx/libancillary
+	url = git://github.com/fishman/libancillary.git
