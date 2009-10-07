@@ -20,6 +20,7 @@
 		275730AE0FD99B8A00B7ECE5 /* N2NThread.m in Sources */ = {isa = PBXBuildFile; fileRef = 275730AD0FD99B8A00B7ECE5 /* N2NThread.m */; };
 		27D18873107C988C001F2B3F /* TunHelper in Resources */ = {isa = PBXBuildFile; fileRef = 27D1886D107C9870001F2B3F /* TunHelper */; };
 		27D18878107C98A2001F2B3F /* TunHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = 27D18865107C9864001F2B3F /* TunHelper.m */; };
+		27D188A2107C9B19001F2B3F /* fd_send.c in Sources */ = {isa = PBXBuildFile; fileRef = 27D1888A107C9A9A001F2B3F /* fd_send.c */; };
 		8D11072B0486CEB800E47090 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 089C165CFE840E0CC02AAC07 /* InfoPlist.strings */; };
 		8D11072D0486CEB800E47090 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 29B97316FDCFA39411CA2CEA /* main.m */; settings = {ATTRIBUTES = (); }; };
 		8D11072F0486CEB800E47090 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; };
@@ -54,6 +55,8 @@
 		275730AD0FD99B8A00B7ECE5 /* N2NThread.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = N2NThread.m; sourceTree = "<group>"; };
 		27D18865107C9864001F2B3F /* TunHelper.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TunHelper.m; sourceTree = "<group>"; };
 		27D1886D107C9870001F2B3F /* TunHelper */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = TunHelper; sourceTree = BUILT_PRODUCTS_DIR; };
+		27D1888A107C9A9A001F2B3F /* fd_send.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = fd_send.c; sourceTree = "<group>"; };
+		27D18891107C9AAC001F2B3F /* ancillary.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ancillary.h; sourceTree = "<group>"; };
 		29B97316FDCFA39411CA2CEA /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		29B97324FDCFA39411CA2CEA /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = /System/Library/Frameworks/AppKit.framework; sourceTree = "<absolute>"; };
 		29B97325FDCFA39411CA2CEA /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
@@ -85,6 +88,7 @@
 		080E96DDFE201D6D7F000001 /* Classes */ = {
 			isa = PBXGroup;
 			children = (
+				27D18889107C9A86001F2B3F /* libancillary */,
 				27D18865107C9864001F2B3F /* TunHelper.m */,
 				275730960FD991A800B7ECE5 /* AppController.h */,
 				275730970FD991A800B7ECE5 /* AppController.m */,
@@ -132,6 +136,15 @@
 				275730710FD9887000B7ECE5 /* version.c */,
 			);
 			name = n2n;
+			sourceTree = "<group>";
+		};
+		27D18889107C9A86001F2B3F /* libancillary */ = {
+			isa = PBXGroup;
+			children = (
+				27D18891107C9AAC001F2B3F /* ancillary.h */,
+				27D1888A107C9A9A001F2B3F /* fd_send.c */,
+			);
+			path = libancillary;
 			sourceTree = "<group>";
 		};
 		29B97314FDCFA39411CA2CEA /* n2n */ = {
@@ -252,6 +265,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				27D188A2107C9B19001F2B3F /* fd_send.c in Sources */,
 				27D18878107C98A2001F2B3F /* TunHelper.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
