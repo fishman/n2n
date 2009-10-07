@@ -18,10 +18,22 @@
 		275730930FD98CDB00B7ECE5 /* Defaults.plist in Resources */ = {isa = PBXBuildFile; fileRef = 275730920FD98CDB00B7ECE5 /* Defaults.plist */; };
 		275730980FD991A800B7ECE5 /* AppController.m in Sources */ = {isa = PBXBuildFile; fileRef = 275730970FD991A800B7ECE5 /* AppController.m */; };
 		275730AE0FD99B8A00B7ECE5 /* N2NThread.m in Sources */ = {isa = PBXBuildFile; fileRef = 275730AD0FD99B8A00B7ECE5 /* N2NThread.m */; };
+		27D18873107C988C001F2B3F /* TunHelper in Resources */ = {isa = PBXBuildFile; fileRef = 27D1886D107C9870001F2B3F /* TunHelper */; };
+		27D18878107C98A2001F2B3F /* TunHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = 27D18865107C9864001F2B3F /* TunHelper.m */; };
 		8D11072B0486CEB800E47090 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 089C165CFE840E0CC02AAC07 /* InfoPlist.strings */; };
 		8D11072D0486CEB800E47090 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 29B97316FDCFA39411CA2CEA /* main.m */; settings = {ATTRIBUTES = (); }; };
 		8D11072F0486CEB800E47090 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		27D18874107C9895001F2B3F /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 29B97313FDCFA39411CA2CEA /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 27D1886C107C9870001F2B3F /* TunHelper */;
+			remoteInfo = TunHelper;
+		};
+/* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		089C165DFE840E0CC02AAC07 /* English */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = English; path = English.lproj/InfoPlist.strings; sourceTree = "<group>"; };
@@ -40,6 +52,8 @@
 		275730970FD991A800B7ECE5 /* AppController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AppController.m; sourceTree = "<group>"; };
 		275730AC0FD99B8A00B7ECE5 /* N2NThread.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = N2NThread.h; sourceTree = "<group>"; };
 		275730AD0FD99B8A00B7ECE5 /* N2NThread.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = N2NThread.m; sourceTree = "<group>"; };
+		27D18865107C9864001F2B3F /* TunHelper.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TunHelper.m; sourceTree = "<group>"; };
+		27D1886D107C9870001F2B3F /* TunHelper */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = TunHelper; sourceTree = BUILT_PRODUCTS_DIR; };
 		29B97316FDCFA39411CA2CEA /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		29B97324FDCFA39411CA2CEA /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = /System/Library/Frameworks/AppKit.framework; sourceTree = "<absolute>"; };
 		29B97325FDCFA39411CA2CEA /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
@@ -49,6 +63,13 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		27D1886B107C9870001F2B3F /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		8D11072E0486CEB800E47090 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -64,6 +85,7 @@
 		080E96DDFE201D6D7F000001 /* Classes */ = {
 			isa = PBXGroup;
 			children = (
+				27D18865107C9864001F2B3F /* TunHelper.m */,
 				275730960FD991A800B7ECE5 /* AppController.h */,
 				275730970FD991A800B7ECE5 /* AppController.m */,
 				275730AC0FD99B8A00B7ECE5 /* N2NThread.h */,
@@ -94,6 +116,7 @@
 			isa = PBXGroup;
 			children = (
 				8D1107320486CEB800E47090 /* n2n.app */,
+				27D1886D107C9870001F2B3F /* TunHelper */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -157,6 +180,22 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		27D1886C107C9870001F2B3F /* TunHelper */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 27D18885107C98B1001F2B3F /* Build configuration list for PBXNativeTarget "TunHelper" */;
+			buildPhases = (
+				27D1886A107C9870001F2B3F /* Sources */,
+				27D1886B107C9870001F2B3F /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = TunHelper;
+			productName = TunHelper;
+			productReference = 27D1886D107C9870001F2B3F /* TunHelper */;
+			productType = "com.apple.product-type.tool";
+		};
 		8D1107260486CEB800E47090 /* n2n */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = C01FCF4A08A954540054247B /* Build configuration list for PBXNativeTarget "n2n" */;
@@ -168,6 +207,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				27D18875107C9895001F2B3F /* PBXTargetDependency */,
 			);
 			name = n2n;
 			productInstallPath = "$(HOME)/Applications";
@@ -187,6 +227,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
+				27D1886C107C9870001F2B3F /* TunHelper */,
 				8D1107260486CEB800E47090 /* n2n */,
 			);
 		};
@@ -197,6 +238,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				27D18873107C988C001F2B3F /* TunHelper in Resources */,
 				8D11072B0486CEB800E47090 /* InfoPlist.strings in Resources */,
 				1DDD58160DA1D0A300B32029 /* MainMenu.xib in Resources */,
 				275730930FD98CDB00B7ECE5 /* Defaults.plist in Resources */,
@@ -206,6 +248,14 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		27D1886A107C9870001F2B3F /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				27D18878107C98A2001F2B3F /* TunHelper.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		8D11072C0486CEB800E47090 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -223,6 +273,14 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		27D18875107C9895001F2B3F /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 27D1886C107C9870001F2B3F /* TunHelper */;
+			targetProxy = 27D18874107C9895001F2B3F /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
 		089C165CFE840E0CC02AAC07 /* InfoPlist.strings */ = {
@@ -244,6 +302,52 @@
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
+		27D1886F107C9871001F2B3F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				COPY_PHASE_STRIP = NO;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = YES;
+				GCC_MODEL_TUNING = G5;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "$(SYSTEM_LIBRARY_DIR)/Frameworks/AppKit.framework/Headers/AppKit.h";
+				INSTALL_PATH = /usr/local/bin;
+				OTHER_LDFLAGS = (
+					"-framework",
+					Foundation,
+					"-framework",
+					AppKit,
+				);
+				PREBINDING = NO;
+				PRODUCT_NAME = TunHelper;
+			};
+			name = Debug;
+		};
+		27D18870107C9871001F2B3F /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_MODEL_TUNING = G5;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "$(SYSTEM_LIBRARY_DIR)/Frameworks/AppKit.framework/Headers/AppKit.h";
+				INSTALL_PATH = /usr/local/bin;
+				OTHER_LDFLAGS = (
+					"-framework",
+					Foundation,
+					"-framework",
+					AppKit,
+				);
+				PREBINDING = NO;
+				PRODUCT_NAME = TunHelper;
+				ZERO_LINK = NO;
+			};
+			name = Release;
+		};
 		C01FCF4B08A954540054247B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -306,6 +410,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		27D18885107C98B1001F2B3F /* Build configuration list for PBXNativeTarget "TunHelper" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				27D1886F107C9871001F2B3F /* Debug */,
+				27D18870107C9871001F2B3F /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		C01FCF4A08A954540054247B /* Build configuration list for PBXNativeTarget "n2n" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
