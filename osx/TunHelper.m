@@ -61,7 +61,7 @@ send_fd(int fd, int fd_to_send)
     return(0);
 }
 
-int socket_client(int fd)
+int sock_client(int fd)
 {
     int s,len;
     struct sockaddr_un saun;
