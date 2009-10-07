@@ -20,7 +20,6 @@
 		275730AE0FD99B8A00B7ECE5 /* N2NThread.m in Sources */ = {isa = PBXBuildFile; fileRef = 275730AD0FD99B8A00B7ECE5 /* N2NThread.m */; };
 		27D18873107C988C001F2B3F /* TunHelper in Resources */ = {isa = PBXBuildFile; fileRef = 27D1886D107C9870001F2B3F /* TunHelper */; };
 		27D18878107C98A2001F2B3F /* TunHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = 27D18865107C9864001F2B3F /* TunHelper.m */; };
-		27D188A2107C9B19001F2B3F /* fd_send.c in Sources */ = {isa = PBXBuildFile; fileRef = 27D1888A107C9A9A001F2B3F /* fd_send.c */; };
 		8D11072B0486CEB800E47090 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 089C165CFE840E0CC02AAC07 /* InfoPlist.strings */; };
 		8D11072D0486CEB800E47090 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 29B97316FDCFA39411CA2CEA /* main.m */; settings = {ATTRIBUTES = (); }; };
 		8D11072F0486CEB800E47090 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; };
@@ -265,7 +264,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				27D188A2107C9B19001F2B3F /* fd_send.c in Sources */,
 				27D18878107C98A2001F2B3F /* TunHelper.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
