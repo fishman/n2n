@@ -20,16 +20,16 @@ int socket_client(int fd)
 {
     int s,len;
     struct sockaddr_un saun;
-    
+
     if((s = socket(PF_LOCAL, SOCK_STREAM, 0)) < 0){
         perror("client: socket");
     }
-    
+
     saun.sun_family = PF_LOCAL;
     strcpy(saun.sun_path, ADDRESS);
-    
+
     len = sizeof(saun.sun_family) + strlen(saun.sun_path);
-    
+
     if (connect(s, &saun, len) < 0) {
         perror("client: connect");
         exit(1);
@@ -46,12 +46,12 @@ int main (int argc, const char * argv[]) {
     int fd, i;
     char tap_device[_POSIX_PATH_MAX];
     NSAutoreleasePool * pool = [[NSAutoreleasePool alloc] init];
-    
+
     NSLog(@"TunHelper started!");
-    
+
     for (i = 0; i < 255; i++) {
         snprintf(tap_device, sizeof(tap_device), "/dev/tap%d", i);
-        
+
         fd = open(tap_device, O_RDWR);
         if(fd > 0) {
             NSLog(@"Succesfully opened %s", tap_device);
