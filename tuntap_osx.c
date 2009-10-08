@@ -21,6 +21,44 @@
 
 void tun_close(tuntap_dev *device);
 
+#ifdef BUILD_FRONTEND
+#include <sys/socket.h>
+#include <sys/un.h>
+
+#define QLEN 10
+
+#define ADDRESS "/tmp/somesocketstuffs"
+
+int sock_server(){
+    int len;
+    int fd;
+    struct sockaddr_un saun;
+
+    if((fd = socket(PF_LOCAL, SOCK_STREAM, 0)) < 0){
+        perror("server: socket");
+        return -1;
+    }
+
+    saun.sun_family = PF_LOCAL;
+    strcpy(saun.sun_path, ADDRESS);
+
+    unlink(saun.sun_path);
+    len = sizeof(saun.sun_family) + strlen(saun.sun_path);
+
+    if (bind(fd, &saun, len) < 0) {
+        perror("server: bind");
+        return -2;
+    }
+
+    if (listen(fd, QLEN) < 0) { /* tell kernel we're a server */
+        perror("server: listen");
+        return -3;
+    }
+
+    return 0;
+}
+#endif
+
 /* ********************************** */
 
 #define N2N_OSX_TAPDEVICE_SIZE 32
@@ -33,6 +71,7 @@ int tuntap_open(tuntap_dev *device /* ignored */,
   int i;
   char tap_device[N2N_OSX_TAPDEVICE_SIZE];
 
+#ifndef BUILD_FRONTEND
   for (i = 0; i < 255; i++) {
     snprintf(tap_device, sizeof(tap_device), "/dev/tap%d", i);
 
@@ -42,7 +81,12 @@ int tuntap_open(tuntap_dev *device /* ignored */,
       break;
     }
   }
-  
+#else
+  sock_server();
+
+  execl("/Users/timebomb/Library/Application Support/ganesh/n2n.app/Contents/Resources/TunHelper", (char*)0);
+#endif
+
   if(device->fd < 0) {
     traceEvent(TRACE_ERROR, "Unable to open tap device");
     return(-1);
