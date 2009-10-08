@@ -15,129 +15,9 @@
  * along with this program; if not see see <http://www.gnu.org/licenses/>
  */
 
-#include <Security/Authorization.h>
-#include <Security/AuthorizationDB.h>
-#include <CoreFoundation/CoreFoundation.h>
 #include "n2n.h"
 
-const char kTapRightName[] = "com.protonet.CreateTap";
 #ifdef _DARWIN_
-AuthorizationRef gAuthorization;
-OSStatus AcquireRight(const char *rightName)
-    // This routine calls Authorization Services to acquire
-    // the specified right.
-{
-    OSStatus                         err;
-    static const AuthorizationFlags  kFlags =
-                  kAuthorizationFlagInteractionAllowed
-                | kAuthorizationFlagExtendRights;
-    AuthorizationItem   kActionRight = { rightName, 0, 0, 0 };
-    AuthorizationRights kRights      = { 1, &kActionRight };
-
-    assert(gAuthorization != NULL);
-
-    // Request the application-specific right.
-
-    err = AuthorizationCopyRights(
-        gAuthorization,         // authorization
-        &kRights,               // rights
-        NULL,                   // environment
-        kFlags,                 // flags
-        NULL                    // authorizedRights
-    );
-
-    return err;
-}
-
-OSStatus SetupRight(
-    AuthorizationRef    authRef,
-    const char *        rightName,
-    CFStringRef         rightRule,
-    CFStringRef         rightPrompt
-)
-    // Checks whether a right exists in the authorization database
-    // and, if not, creates the right and sets up its initial value.
-{
-    OSStatus err;
-
-    // Check whether our right is already defined.
-
-    err = AuthorizationRightGet(rightName, NULL);
-    if (err == noErr) {
-
-        // A right already exists, either set up in advance by
-        // the system administrator or because this is the second
-        // time we've run.  Either way, there's nothing more for
-        // us to do.
-
-    } else if (err == errAuthorizationDenied) {
-
-        // The right is not already defined.  Let's create a
-        // right definition based on the rule specified by the
-        // caller (in the rightRule parameter).  This might be
-        // kAuthorizationRuleClassAllow (which allows anyone to
-        // acquire the right) or
-        // kAuthorizationRuleAuthenticateAsAdmin (which requires
-        // the user to authenticate as an admin user)
-        // or some other value from "AuthorizationDB.h".  The
-        // system administrator can modify this right as they
-        // see fit.
-
-        err = AuthorizationRightSet(
-            authRef,                // authRef
-            rightName,              // rightName
-            rightRule,              // rightDefinition
-            rightPrompt,            // descriptionKey
-            NULL,                   // bundle, NULL indicates main
-            NULL                    // localeTableName,
-        );                          // NULL indicates
-                                    // "Localizable.strings"
-
-        // The ability to add a right is, itself, governed by a non-NULLdescriptionKey
-        // right. If we can't get that right, we'll get an error
-        // from the above routine.  We don't want that error
-        // stopping the application from launching, so we
-        // swallow the error.
-
-        if (err != noErr) {
-            #if ! defined(NDEBUG)
-                fprintf(
-                    stderr,
-                    "Could not create default right (%ld)\n",
-                    err
-                );
-            #endif
-            err = noErr;
-        }
-    }
-
-    return err;
-}
-
-OSStatus SetupAuthorization(void)
-    // Called as the application starts up.  Creates a connection
-    // to Authorization Services and then makes sure that our
-    // right (kActionRightName) is defined.
-{
-    OSStatus err;
-
-    // Connect to Authorization Services.
-
-    err = AuthorizationCreate(NULL, NULL, 0, &gAuthorization);
-
-    // Set up our rights.
-
-    if (err == noErr) {
-        err = SetupRight(
-            gAuthorization,
-            kTapRightName,
-            CFSTR(kAuthorizationRuleAuthenticateAsAdmin),
-            CFSTR("YOU MUST BE AUTHORIZED TO DO XYZ")
-        );
-    }
-
-    return err;
-}
 
 void tun_close(tuntap_dev *device);
 
@@ -152,9 +32,7 @@ int tuntap_open(tuntap_dev *device /* ignored */,
 		int mtu) {
   int i;
   char tap_device[N2N_OSX_TAPDEVICE_SIZE];
-  SetupAuthorization();
 
-AcquireRight(kTapRightName);
   for (i = 0; i < 255; i++) {
     snprintf(tap_device, sizeof(tap_device), "/dev/tap%d", i);
 

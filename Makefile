@@ -39,13 +39,13 @@ DOCS=edge.8.gz supernode.1.gz
 all: $(APPS) #$(DOCS)
 
 edge: edge.c $(N2N_LIB) n2n.h Makefile
-	$(CC) $(CFLAGS) edge.c $(N2N_LIB) $(LIBS) -o edge -framework Security  -framework CoreFoundation
+	$(CC) $(CFLAGS) edge.c $(N2N_LIB) $(LIBS) -o edge
 
 supernode: supernode.c $(N2N_LIB) n2n.h Makefile
 	$(CC) $(CFLAGS) supernode.c $(N2N_LIB) $(LIBS) -o supernode
 
 .c.o: n2n.h Makefile
-	$(CC) $(CFLAGS) -c $< -framework Security -framework CoreFoundation
+	$(CC) $(CFLAGS) -c $<
 
 %.gz : %
 	gzip -c $< > $@
