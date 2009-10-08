@@ -73,7 +73,7 @@ int sock_client(int fd)
 
 int main (int argc, const char * argv[]) {
     int fd, i;
-    char tap_device[_POSIX_PATH_MAX];
+    char tap_device[N2N_OSX_TAPDEVICE_SIZE];
     NSAutoreleasePool * pool = [[NSAutoreleasePool alloc] init];
 
     NSLog(@"TunHelper started!");
