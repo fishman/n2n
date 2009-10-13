@@ -82,13 +82,6 @@
 
     // autorelease again
     [autoreleasePool release];
-    
-    // Releasing an authorization item array
-    myStatus = AuthorizationFreeItemSet (myAuthorizedRights);
-    
-    // Releasing an authorization reference
-    myStatus = AuthorizationFree (myAuthorizationRef,
-                                  kAuthorizationFlagDestroyRights);
 
     /* Main loop
      *
