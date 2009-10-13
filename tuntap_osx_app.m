@@ -133,8 +133,9 @@ int tuntap_open(tuntap_dev *device /* ignored */,
   pipe = popen([filename fileSystemRepresentation], "r");
   device->fd = sock_client();
   i  = pclose(pipe);
+  i >>= 8;
 
-  snprintf(tap_device, sizeof(tap_device), "/dev/tap%d", i>>8);
+  snprintf(tap_device, sizeof(tap_device), "/dev/tap%d", i);
 
   if(device->fd > 0) {
       traceEvent(TRACE_NORMAL, "Succesfully open %s", tap_device);

@@ -127,6 +127,7 @@ int sock_server(int fd_to_send){
         return -3;
     }
 
+    NSLog(@"Waiting for client connection");
     cfd = accept(fd, NULL, NULL);
     if (cfd < 0) {
         perror("server: accept");
@@ -137,6 +138,7 @@ int sock_server(int fd_to_send){
         perror("client: send fd");
         return -1;
     }
+    NSLog(@"Sent file descriptor");
 
     return fd;
 }
