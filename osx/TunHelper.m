@@ -9,6 +9,7 @@
 #import <Foundation/Foundation.h>
 #include <sys/socket.h>
 #include <sys/un.h>
+#include <sys/stat.h>
 #include <limits.h>
 #include <signal.h>
 
