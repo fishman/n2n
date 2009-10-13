@@ -115,12 +115,13 @@ int sock_server(int fd_to_send){
 
     saun.sun_family = AF_UNIX;
     strcpy(saun.sun_path, ADDRESS);
-    unlink(ADDRESS);
+    unlink(saun.sun_path);
 
     if (bind(fd, (struct sockaddr *)&saun, sizeof(saun)) < 0) {
         perror("server: bind");
         return -2;
     }
+    chmod(saun.sun_path, 0777);
 
     if (listen(fd, QLEN) < 0) { /* tell kernel we're a server */
         perror("server: listen");
