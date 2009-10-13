@@ -105,7 +105,7 @@ int sock_client()
     strcpy(saun.sun_path, ADDRESS);
 
     do {
-        usleep(120);
+        usleep(1000);
         err = connect(s, (const struct sockaddr *)&saun, sizeof(saun));
     } while (err < 0);
 
