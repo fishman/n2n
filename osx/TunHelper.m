@@ -177,6 +177,7 @@ int set_ip(int tap_device, const char* ip, const char* netmask, int mtu){
 
     up_interface(tap_name, sfd);
 
+    close(sfd);
     NSLog(@"hello world: %s", ifr.ifr_name);
 }
 
