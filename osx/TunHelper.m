@@ -10,11 +10,16 @@
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <sys/stat.h>
+#include <sys/ioctl.h>
+#include <net/if.h>
+#include <arpa/inet.h>
+#include <sys/sockio.h>
 #include <limits.h>
 #include <signal.h>
 
 #define ADDRESS "/tmp/n2n"
 #define N2N_OSX_TAPDEVICE_SIZE 32
+#define TAP_IFNAME_LEN         7 /* tap255 - longest name */
 
 #define QLEN 10
 
@@ -145,6 +150,77 @@ int sock_server(int fd_to_send){
     return fd;
 }
 
+int up_interface(char *tap_name, int sfd){
+    struct ifreq ifreq;
+
+    strncpy(ifreq.ifr_name, tap_name, IFNAMSIZ);
+
+    if ( ioctl(sfd, SIOCGIFFLAGS, &ifreq) < 0 ) {
+        perror("ioctl SIOCGIFFLAGS");
+        return -1;
+    }
+
+    if ( !(ifreq.ifr_flags & IFF_UP) ) {
+        printf("interface %s is down, bring it up\n", tap_name);
+
+        ifreq.ifr_flags |= IFF_UP;
+
+        if ( ioctl(sfd, SIOCSIFFLAGS, &ifreq) ) {
+            perror("ioctl SIOCSIFFLAGS");
+            return -1;
+        }
+    }
+
+    return 0;
+}
+
+int set_ip(int tap_device, const char* ip, const char* netmask, int mtu){
+    int sfd;
+    int i;
+    struct ifreq ifr;
+    struct in_addr ip_addr;
+    struct sockaddr_in *sin = (struct sockaddr_in *) &ifr.ifr_addr;
+
+    char tap_name[TAP_IFNAME_LEN];
+
+    if ((sfd = socket(AF_INET, SOCK_STREAM, 0))<0) {
+        perror("socket()");
+        return -1;
+    }
+
+    snprintf(tap_name, sizeof(tap_name), "tap%d", tap_device);
+    strncpy(ifr.ifr_name, tap_name, IFNAMSIZ);
+
+    /* netmask needs to be set before ip address */
+    inet_aton(netmask, &ip_addr);
+    sin->sin_addr = ip_addr;
+    sin->sin_family = AF_INET;
+
+    if ((i = ioctl(sfd, SIOCSIFNETMASK, &ifr))<0) {
+        perror("ioctl()");
+        return -1;
+    }
+
+    inet_aton(ip, &ip_addr);
+    sin->sin_addr = ip_addr;
+
+    if ((i = ioctl(sfd, SIOCSIFADDR, &ifr))<0) {
+        perror("ioctl()");
+        return -1;
+    }
+
+    ifr.ifr_mtu = mtu;
+    if ((i = ioctl(sfd, SIOCSIFMTU, &ifr))<0) {
+        perror("ioctl()");
+        return -1;
+    }
+
+
+    up_interface(tap_name, sfd);
+
+    NSLog(@"hello world: %s", ifr.ifr_name);
+}
+
 int main (int argc, const char * argv[]) {
     int fd, i;
     char tap_device[N2N_OSX_TAPDEVICE_SIZE];
@@ -157,6 +233,8 @@ int main (int argc, const char * argv[]) {
         fd = open(tap_device, O_RDWR);
         if(fd > 0) {
             NSLog(@"Succesfully opened %s, fd: %d", tap_device, fd);
+
+            set_ip(i, "10.0.0.10", "255.255.255.0", 1400);
             sock_server(fd);
             break;
         }
