@@ -68,48 +68,7 @@ send_fd(int fd, int fd_to_send)
         return(-1);
     return(0);
 }
-#else
-#define ANCIL_FD_BUFFER(n) \
-    struct { \
-	struct cmsghdr h; \
-	int fd[n]; \
-    }
 
-int
-ancil_send_fds_with_buffer(int sock, const int *fds, unsigned n_fds, void *buffer)
-{
-    struct msghdr msghdr;
-    char nothing = '!';
-    struct iovec nothing_ptr;
-    struct cmsghdr *cmsg;
-    int i;
-
-    nothing_ptr.iov_base = &nothing;
-    nothing_ptr.iov_len = 1;
-    msghdr.msg_name = NULL;
-    msghdr.msg_namelen = 0;
-    msghdr.msg_iov = &nothing_ptr;
-    msghdr.msg_iovlen = 1;
-    msghdr.msg_flags = 0;
-    msghdr.msg_control = buffer;
-    msghdr.msg_controllen = sizeof(struct cmsghdr) + sizeof(int) * n_fds;
-    cmsg = CMSG_FIRSTHDR(&msghdr);
-    cmsg->cmsg_len = msghdr.msg_controllen;
-    cmsg->cmsg_level = SOL_SOCKET;
-    cmsg->cmsg_type = SCM_RIGHTS;
-    for(i = 0; i < n_fds; i++)
-	((int *)CMSG_DATA(cmsg))[i] = fds[i];
-    return(sendmsg(sock, &msghdr, 0) >= 0 ? 0 : -1);
-}
-
-int
-send_fd(int sock, int fd)
-{
-    ANCIL_FD_BUFFER(1) buffer;
-
-    return(ancil_send_fds_with_buffer(sock, &fd, 1, &buffer));
-}
-#endif
 int sock_server(int fd_to_send){
     int fd, cfd;
     struct sockaddr_un saun;
