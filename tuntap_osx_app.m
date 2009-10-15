@@ -127,12 +127,18 @@ int tuntap_open(tuntap_dev *device /* ignored */,
 		int mtu) {
   int i;
   char tap_device[N2N_OSX_TAPDEVICE_SIZE];
-  NSString *filename = @"/Users/timebomb/Library/Application\\ Support/ganesh/n2n.app/Contents/Resources/TunHelper";
-  FILE *pipe;
+  NSString *filename = @"~/Library/Application Support/ganesh/n2n.app/Contents/Resources/TunHelper";
+  NSArray *arguments = [NSArray arrayWithObjects:filename, nil];
+  NSTask *helper = [[NSTask alloc] init];
 
-  pipe = popen([filename fileSystemRepresentation], "r");
+  [helper setLaunchPath:filename];
+  [helper setArguments:arguments];
+  [helper launch];
+
   device->fd = sock_client();
-  i  = pclose(pipe);
+
+  [helper waitUntilExit];
+  i = [helper terminationStatus];
   i >>= 8;
 
   snprintf(tap_device, sizeof(tap_device), "/dev/tap%d", i);
