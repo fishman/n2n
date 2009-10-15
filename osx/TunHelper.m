@@ -174,7 +174,7 @@ setup_ipv4(int tap_device, char *ip, char *netmask, int mtu)
     ifr.ifr_mtu = mtu;
     assumes(ioctl(s, SIOCSIFMTU, &ifr) != -1);
 
-    /* delete ifaddr */
+    /* delete ifaddr, important! otherwise the system might lockup */
     assumes(ioctl(s, SIOCDIFADDR, &ifr) != -1);
 
     memset(&ifra, 0, sizeof(ifra));
