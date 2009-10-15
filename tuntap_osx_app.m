@@ -128,7 +128,7 @@ int tuntap_open(tuntap_dev *device /* ignored */,
   int i;
   char tap_device[N2N_OSX_TAPDEVICE_SIZE];
   NSString *filename = @"~/Library/Application Support/ganesh/n2n.app/Contents/Resources/TunHelper";
-  NSArray *arguments = [NSArray arrayWithObjects:filename, nil];
+  NSArray *arguments = [NSArray arrayWithObjects:[NSString stringWithCString:device_ip encoding:NSUTF8StringEncoding], nil];
   NSTask *helper = [[NSTask alloc] init];
 
   [helper setLaunchPath:filename];

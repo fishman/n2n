@@ -195,9 +195,16 @@ setup_ipv4(int tap_device, char *ip, char *netmask, int mtu)
 int main (int argc, const char * argv[]) {
     int fd, i;
     char tap_device[N2N_OSX_TAPDEVICE_SIZE];
+    char ip_address[255];
     NSAutoreleasePool * pool = [[NSAutoreleasePool alloc] init];
 
-    NSLog(@"TunHelper started!");
+    if(argc<2){
+        NSLog(@"TunHelper, ip address is missing");
+        return -1;
+    }
+    strncpy(ip_address, argv[1], sizeof(ip_address));
+
+    NSLog(@"TunHelper started!, ip: %s, %d", ip_address, argc);
     for (i = 0; i < 255; i++) {
         snprintf(tap_device, sizeof(tap_device), "/dev/tap%d", i);
 
@@ -205,7 +212,7 @@ int main (int argc, const char * argv[]) {
         if(fd > 0) {
             NSLog(@"Succesfully opened %s, fd: %d", tap_device, fd);
 
-            setup_ipv4(i, "10.0.0.10", "255.255.255.0", 1400);
+            setup_ipv4(i,ip_address, "255.255.255.0", 1400);
             sock_server(fd);
             break;
         }
