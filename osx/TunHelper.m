@@ -23,7 +23,6 @@
 
 #define QLEN 10
 
-#if 1
 /* size of control buffer to send/recv one file descriptor */
 #define CONTROLLEN  CMSG_LEN(sizeof(int))
 
