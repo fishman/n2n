@@ -174,6 +174,9 @@ setup_ipv4(int tap_device, char *ip, char *netmask, int mtu)
     ifr.ifr_mtu = mtu;
     assumes(ioctl(s, SIOCSIFMTU, &ifr) != -1);
 
+    /* delete ifaddr */
+    assumes(ioctl(s, SIOCDIFADDR, &ifr) != -1);
+
     memset(&ifra, 0, sizeof(ifra));
     strncpy(ifra.ifra_name, tap_name, IFNAMSIZ);
     ((struct sockaddr_in *)&ifra.ifra_addr)->sin_family = AF_INET;
