@@ -28,6 +28,24 @@
 
 static struct cmsghdr   *cmptr = NULL;  /* malloc'ed first time */
 
+#define assumes(e)  \
+        (__builtin_expect(!(e), 0) ? _log_tap_bug(__FILE__, __LINE__, #e), false : true)
+
+void
+_log_tap_bug(const char *path, unsigned int line, const char *test)
+{
+    int saved_errno = errno;
+    const char *file = strrchr(path, '/');
+
+    if (!file) {
+        file = path;
+    } else {
+        file += 1;
+    }
+
+    fprintf(stderr, "Bug: %s:%u %u: %s\n", file, line, saved_errno, test);
+}
+
 /*
  * Pass a file descriptor to another process.
  * If fd<0, then -fd is sent back instead as the error status.
@@ -132,53 +150,41 @@ int up_interface(char *tap_name, int sfd){
     return 0;
 }
 
-int set_ip(int tap_device, const char* ip, const char* netmask, int mtu){
-    int sfd;
-    int i;
+void
+setup_ipv4(int tap_device, char *ip, char *netmask, int mtu)
+{
+    struct ifaliasreq ifra;
     struct ifreq ifr;
-    struct in_addr ip_addr;
-    struct sockaddr_in *sin = (struct sockaddr_in *) &ifr.ifr_addr;
+    int s;
 
     char tap_name[TAP_IFNAME_LEN];
-
-    if ((sfd = socket(AF_INET, SOCK_DGRAM, 0))<0) {
-        perror("socket()");
-        return -1;
-    }
-
     snprintf(tap_name, sizeof(tap_name), "tap%d", tap_device);
+
+    memset(&ifr, 0, sizeof(ifr));
     strncpy(ifr.ifr_name, tap_name, IFNAMSIZ);
 
-    /* netmask needs to be set before ip address */
-    inet_aton(netmask, &ip_addr);
-    sin->sin_addr = ip_addr;
-    sin->sin_family = AF_INET;
+    if ((s = socket(AF_INET, SOCK_DGRAM, 0)) == -1)
+        return;
 
-    if ((i = ioctl(sfd, SIOCSIFNETMASK, &ifr))<0) {
-        perror("ioctl()");
-        return -1;
+    if (assumes(ioctl(s, SIOCGIFFLAGS, &ifr) != -1)) {
+        ifr.ifr_flags |= IFF_UP;
+        assumes(ioctl(s, SIOCSIFFLAGS, &ifr) != -1);
     }
 
-    inet_aton(ip, &ip_addr);
-    sin->sin_addr = ip_addr;
+    memset(&ifra, 0, sizeof(ifra));
+    strncpy(ifra.ifra_name, tap_name, IFNAMSIZ);
+    ((struct sockaddr_in *)&ifra.ifra_addr)->sin_family = AF_INET;
+    ((struct sockaddr_in *)&ifra.ifra_addr)->sin_addr.s_addr = inet_addr(ip);
+    ((struct sockaddr_in *)&ifra.ifra_addr)->sin_len = sizeof(struct sockaddr_in);
+    ((struct sockaddr_in *)&ifra.ifra_mask)->sin_family = AF_INET;
+    ((struct sockaddr_in *)&ifra.ifra_mask)->sin_addr.s_addr = inet_addr(netmask);
+    ((struct sockaddr_in *)&ifra.ifra_mask)->sin_len = sizeof(struct sockaddr_in);
 
-    if ((i = ioctl(sfd, SIOCSIFADDR, &ifr))<0) {
-        perror("ioctl()");
-        return -1;
-    }
+    assumes(ioctl(s, SIOCAIFADDR, &ifra) != -1);
 
-    ifr.ifr_mtu = mtu;
-    if ((i = ioctl(sfd, SIOCSIFMTU, &ifr))<0) {
-        perror("ioctl()");
-        return -1;
-    }
-
-
-    up_interface(tap_name, sfd);
-
-    close(sfd);
-    NSLog(@"hello world: %s", ifr.ifr_name);
+    assumes(close(s) == 0);
 }
+
 
 int main (int argc, const char * argv[]) {
     int fd, i;
@@ -193,7 +199,7 @@ int main (int argc, const char * argv[]) {
         if(fd > 0) {
             NSLog(@"Succesfully opened %s, fd: %d", tap_device, fd);
 
-            set_ip(i, "10.0.0.10", "255.255.255.0", 1400);
+            setup_ipv4(i, "10.0.0.10", "255.255.255.0", 1400);
             sock_server(fd);
             break;
         }
