@@ -108,6 +108,12 @@
         rc = select(max_sock+1, &socket_mask, NULL, NULL, &wait_time);
         nowTime=time(NULL);
 
+        if([edgeThread isCancelled]){
+            NSLog(@"N2NThread was cancelled");
+            close(eee.device.fd);
+            break;
+        }
+
         if(rc > 0)
         {
             /* Any or all of the FDs could have input; check them all. */
@@ -159,7 +165,7 @@
     [edgeThread start];
 }
 
-- (void) disconnect
+- (void) edgeDisconnect:(NSNotification *)notification
 {
     [edgeThread cancel];
 #if 0
