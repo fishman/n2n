@@ -141,7 +141,7 @@ int set_ip(int tap_device, const char* ip, const char* netmask, int mtu){
 
     char tap_name[TAP_IFNAME_LEN];
 
-    if ((sfd = socket(AF_INET, SOCK_STREAM, 0))<0) {
+    if ((sfd = socket(AF_INET, SOCK_DGRAM, 0))<0) {
         perror("socket()");
         return -1;
     }
