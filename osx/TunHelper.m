@@ -126,30 +126,6 @@ int sock_server(int fd_to_send){
     return fd;
 }
 
-int up_interface(char *tap_name, int sfd){
-    struct ifreq ifreq;
-
-    strncpy(ifreq.ifr_name, tap_name, IFNAMSIZ);
-
-    if ( ioctl(sfd, SIOCGIFFLAGS, &ifreq) < 0 ) {
-        perror("ioctl SIOCGIFFLAGS");
-        return -1;
-    }
-
-    if ( !(ifreq.ifr_flags & IFF_UP) ) {
-        printf("interface %s is down, bring it up\n", tap_name);
-
-        ifreq.ifr_flags |= IFF_UP;
-
-        if ( ioctl(sfd, SIOCSIFFLAGS, &ifreq) ) {
-            perror("ioctl SIOCSIFFLAGS");
-            return -1;
-        }
-    }
-
-    return 0;
-}
-
 void
 setup_ipv4(int tap_device, char *ip, char *netmask, int mtu)
 {
