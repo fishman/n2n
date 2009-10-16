@@ -405,6 +405,7 @@
 				OTHER_CFLAGS = "-DBUILD_FRONTEND=1";
 				PREBINDING = NO;
 				SDKROOT = macosx10.5;
+				USER_HEADER_SEARCH_PATHS = ../;
 			};
 			name = Release;
 		};
