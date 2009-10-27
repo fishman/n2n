@@ -47,7 +47,7 @@
 - (id) init
 {
     if (self = [super init]){
-        NSLog(@"wassup");
+        NSLog(@"n2n daemon initializing.");
         // initialize user defaults
         [self initDefaults];
 
