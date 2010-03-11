@@ -11,6 +11,7 @@
 
 @interface AppController : NSObject {
     N2NThread *n2nThread;
+    NSConnection *serverConnection;
 }
 
 @end

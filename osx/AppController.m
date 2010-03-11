@@ -50,6 +50,13 @@
         NSLog(@"n2n daemon initializing.");
         // initialize user defaults
         [self initDefaults];
+        serverConnection = [NSConnection connectionWithRegisteredName:@"N2NServerConnection" host:nil];
+        if(serverConnection == nil){
+            NSLog(@"Could not connect to server with name N2NServerConnection");
+            [NSApp terminate:self];
+        }
+        [serverConnection setDelegate:self];
+        [serverConnection retain];
 
         n2nThread = [[[N2NThread alloc] init] retain];
 
@@ -66,7 +73,7 @@
         [[NSNotificationCenter defaultCenter] addObserver:self
                                                  selector:@selector(connectionDidDie:)
                                                      name:NSConnectionDidDieNotification
-                                                   object:nil];
+                                                   object:serverConnection];
 
         [[[NSWorkspace sharedWorkspace] notificationCenter] addObserver:self
                                                                selector:@selector(workspaceDidTerminateApplication:)
@@ -81,7 +88,8 @@
 - (void) dealloc
 {
     [n2nThread release];
-
+    [serverConnection release];
+    
     [super dealloc];
 }
 
