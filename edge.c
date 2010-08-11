@@ -22,12 +22,44 @@
  *
  */
 
-#include "edge.h"
+#include "minilzo.h"
+#include "n2n.h"
+#include <assert.h>
+#include <sys/stat.h>
 
-#ifndef BUILD_FRONTEND
-static
-#endif
-void supernode2addr(n2n_edge_t * eee, char* addr);
+/** Time between logging system STATUS messages */
+#define STATUS_UPDATE_INTERVAL (30 * 60) /*secs*/
+
+/* maximum length of command line arguments */
+#define MAX_CMDLINE_BUFFER_LENGTH    4096
+/* maximum length of a line in the configuration file */
+#define MAX_CONFFILE_LINE_LENGTH     1024
+
+struct n2n_edge
+{
+  u_char              re_resolve_supernode_ip;
+  struct peer_addr    supernode;
+  char                supernode_ip[48];
+  char *              community_name /*= NULL*/;
+  
+  /*     int                 sock; */
+  /*     char                is_udp_socket /\*= 1*\/; */
+  n2n_sock_info_t     sinfo;
+
+  u_int               pkt_sent /*= 0*/;
+  tuntap_dev          device;
+  int                 allow_routing /*= 0*/;
+  int                 drop_ipv6_ndp /*= 0*/;
+  char *              encrypt_key /* = NULL*/;
+  TWOFISH *           enc_tf;
+  TWOFISH *           dec_tf;
+
+  struct peer_info *  known_peers /* = NULL*/;
+  struct peer_info *  pending_peers /* = NULL*/;
+  time_t              last_register /* = 0*/;
+};
+
+static void supernode2addr(n2n_edge_t * eee, char* addr);
 
 static void send_packet2net(n2n_edge_t * eee,
 			    char *decrypted_msg, size_t len);
@@ -156,10 +188,7 @@ static char ** buildargv(char * const linebuffer) {
 
 /* ************************************** */
 
-#ifndef BUILD_FRONTEND
-static
-#endif
-int edge_init(n2n_edge_t * eee) {
+static int edge_init(n2n_edge_t * eee) {
 #ifdef WIN32
   initWin32();
 #endif
@@ -187,10 +216,7 @@ int edge_init(n2n_edge_t * eee) {
   return(0);
 }
 
-#ifndef BUILD_FRONTEND
-static
-#endif
-int edge_init_twofish( n2n_edge_t * eee, u_int8_t *encrypt_pwd, u_int32_t encrypt_pwd_len )
+static int edge_init_twofish( n2n_edge_t * eee, u_int8_t *encrypt_pwd, u_int32_t encrypt_pwd_len )
 {
   eee->enc_tf = TwoFishInit(encrypt_pwd, encrypt_pwd_len);
   eee->dec_tf = TwoFishInit(encrypt_pwd, encrypt_pwd_len);
@@ -216,10 +242,7 @@ static void edge_deinit(n2n_edge_t * eee) {
     }
 }
 
-#ifndef BUILD_FRONTEND
-static
-#endif
-void readFromIPSocket( n2n_edge_t * eee );
+static void readFromIPSocket( n2n_edge_t * eee );
 
 static void help() {
   print_n2n_version();
@@ -290,7 +313,7 @@ static void send_register( n2n_edge_t * eee,
   marshall_n2n_packet_header( (u_int8_t *)pkt, &hdr );
   send_packet( &(eee->sinfo), pkt, &len, remote_peer, N2N_COMPRESSION_ENABLED );
 
-  traceEvent(TRACE_INFO, "Sent %s message to %s:%hd",
+  traceEvent(TRACE_INFO, "Sent %s message to %s:%hu",
              ((hdr.msg_type==MSG_TYPE_REGISTER)?"MSG_TYPE_REGISTER":"MSG_TYPE_REGISTER_ACK"),
 	     intoa(ntohl(remote_peer->addr_type.v4_addr), ip_buf, sizeof(ip_buf)),
 	     ntohs(remote_peer->port));
@@ -362,7 +385,7 @@ void try_send_register( n2n_edge_t * eee,
       traceEvent( TRACE_NORMAL, "Pending peers list size=%ld",
 		  peer_list_size( eee->pending_peers ) );
 
-      traceEvent( TRACE_NORMAL, "Sending REGISTER request to %s:%hd",
+      traceEvent( TRACE_NORMAL, "Sending REGISTER request to %s:%hu",
 		  intoa(ntohl(scan->public_ip.addr_type.v4_addr), ip_buf, sizeof(ip_buf)),
 		  ntohs(scan->public_ip.port));
 
@@ -381,7 +404,7 @@ void try_send_register( n2n_edge_t * eee,
 	  /* over-write supernode-based socket with direct socket. */
 	  scan->public_ip = hdr->public_ip;
 
-	  traceEvent( TRACE_NORMAL, "Sending additional REGISTER request to %s:%hd",
+	  traceEvent( TRACE_NORMAL, "Sending additional REGISTER request to %s:%hu",
 		      intoa(ntohl(scan->public_ip.addr_type.v4_addr), ip_buf, sizeof(ip_buf)),
 		      ntohs(scan->public_ip.port));
 
@@ -458,7 +481,7 @@ void set_peer_operational( n2n_edge_t * eee, const struct n2n_packet_header * hd
 
       scan->public_ip = hdr->public_ip;
 
-      traceEvent(TRACE_INFO, "=== new peer [mac=%s][socket=%s:%hd]",
+      traceEvent(TRACE_INFO, "=== new peer [mac=%s][socket=%s:%hu]",
 		 macaddr_str(scan->mac_addr, mac_buf, sizeof(mac_buf)),
 		 intoa(ntohl(scan->public_ip.addr_type.v4_addr), ip_buf, sizeof(ip_buf)),
 		 ntohs(scan->public_ip.port));
@@ -486,7 +509,7 @@ void trace_registrations( struct peer_info * scan )
 
   while ( scan )
     {
-      traceEvent(TRACE_INFO, "=== peer [mac=%s][socket=%s:%hd]",
+      traceEvent(TRACE_INFO, "=== peer [mac=%s][socket=%s:%hu]",
 		 macaddr_str(scan->mac_addr, mac_buf, sizeof(mac_buf)),
 		 intoa(ntohl(scan->public_ip.addr_type.v4_addr), ip_buf, sizeof(ip_buf)),
 		 ntohs(scan->public_ip.port));
@@ -548,7 +571,7 @@ static void update_peer_address(n2n_edge_t * eee,
     {
       if ( 0 == hdr->sent_by_supernode )
         {
-	  traceEvent( TRACE_NORMAL, "Peer changed public socket, Was %s:%hd",
+	  traceEvent( TRACE_NORMAL, "Peer changed public socket, Was %s:%hu",
 		      intoa(ntohl(hdr->public_ip.addr_type.v4_addr), ip_buf, sizeof(ip_buf)),
 		      ntohs(hdr->public_ip.port));
 
@@ -638,10 +661,7 @@ static void send_grat_arps(n2n_edge_t * eee,) {
  *  This is periodically called by the main loop. The list of registrations is
  *  not modified. Registration packets may be sent.
  */
-#ifndef BUILD_FRONTEND
-static
-#endif
-void update_registrations( n2n_edge_t * eee ) {
+static void update_registrations( n2n_edge_t * eee ) {
   /* REVISIT: BbMaj7: have shorter timeout to REGISTER to supernode if this has
    * not yet succeeded. */
 
@@ -674,7 +694,7 @@ static int find_peer_destination(n2n_edge_t * eee,
 	     mac_address[3] & 0xFF, mac_address[4] & 0xFF, mac_address[5] & 0xFF);
 
   while(scan != NULL) {
-    traceEvent(TRACE_INFO, "Evaluating peer [MAC=%02X:%02X:%02X:%02X:%02X:%02X][ip=%s:%hd]",
+    traceEvent(TRACE_INFO, "Evaluating peer [MAC=%02X:%02X:%02X:%02X:%02X:%02X][ip=%s:%hu]",
 	       scan->mac_addr[0] & 0xFF, scan->mac_addr[1] & 0xFF, scan->mac_addr[2] & 0xFF,
 	       scan->mac_addr[3] & 0xFF, scan->mac_addr[4] & 0xFF, scan->mac_addr[5] & 0xFF,
 	       intoa(ntohl(scan->public_ip.addr_type.v4_addr), ip_buf, sizeof(ip_buf)),
@@ -695,7 +715,7 @@ static int find_peer_destination(n2n_edge_t * eee,
       memcpy(destination, &(eee->supernode), sizeof(struct sockaddr_in));
     }
 
-  traceEvent(TRACE_INFO, "find_peer_address(%s) -> [socket=%s:%hd]",
+  traceEvent(TRACE_INFO, "find_peer_address(%s) -> [socket=%s:%hu]",
              macaddr_str( (char *)mac_address, mac_buf, sizeof(mac_buf)),
              intoa(ntohl(destination->addr_type.v4_addr), ip_buf, sizeof(ip_buf)),
              ntohs(destination->port));
@@ -737,13 +757,14 @@ static void send_packet2net(n2n_edge_t * eee,
       /* This is an IP packet from the local source address - not forwarded. */
 #define ETH_FRAMESIZE 14
 #define IP4_SRCOFFSET 12
-      u_int32_t *dst = (u_int32_t*)&decrypted_msg[ETH_FRAMESIZE + IP4_SRCOFFSET];
+      u_int32_t dst;
+      memcpy( &dst, &decrypted_msg[ETH_FRAMESIZE + IP4_SRCOFFSET], sizeof(dst) );
 
-      /* Note: all elements of the_ip are in network order */
-      if( *dst != eee->device.ip_addr) {
+      /* The following comparison works because device.ip_addr is stored in network order */
+      if( dst != eee->device.ip_addr) {
 		/* This is a packet that needs to be routed */
 		traceEvent(TRACE_INFO, "Discarding routed packet [%s]", 
-				               intoa(ntohl(*dst), ip_buf, sizeof(ip_buf)));
+				               intoa(ntohl(dst), ip_buf, sizeof(ip_buf)));
 		return;
       } else {
 	/* This packet is originated by us */
@@ -768,7 +789,7 @@ static void send_packet2net(n2n_edge_t * eee,
   len += N2N_PKT_HDR_SIZE;
 
   if(find_peer_destination(eee, eh->ether_dhost, &destination))
-    traceEvent(TRACE_INFO, "** Going direct [dst_mac=%s][dest=%s:%hd]",
+    traceEvent(TRACE_INFO, "** Going direct [dst_mac=%s][dest=%s:%hu]",
 	       macaddr_str((char*)eh->ether_dhost, mac_buf, sizeof(mac_buf)),
 	       intoa(ntohl(destination.addr_type.v4_addr), ip_buf, sizeof(ip_buf)),
 	       ntohs(destination.port));
@@ -844,12 +865,13 @@ static int check_received_packet(n2n_edge_t * eee, char *pkt,
     if(ntohs(eh->ether_type) == 0x0800) {
 
       /* Note: all elements of the_ip are in network order */
-      struct ip *the_ip = (struct ip*)(pkt+sizeof(struct ether_header));
+      struct ip the_ip;
+      memcpy( &the_ip, pkt+sizeof(struct ether_header), sizeof(the_ip) );
 
-      if((the_ip->ip_dst.s_addr != eee->device.ip_addr)
-	 && ((the_ip->ip_dst.s_addr & eee->device.device_mask) != (eee->device.ip_addr & eee->device.device_mask)) /* Not a broadcast */
-	 && ((the_ip->ip_dst.s_addr & 0xE0000000) != (0xE0000000 /* 224.0.0.0-239.255.255.255 */)) /* Not a multicast */
-	 && ((the_ip->ip_dst.s_addr) != (bcast.s_addr)) /* always broadcast (RFC919) */
+      if((the_ip.ip_dst.s_addr != eee->device.ip_addr)
+	 && ((the_ip.ip_dst.s_addr & eee->device.device_mask) != (eee->device.ip_addr & eee->device.device_mask)) /* Not a broadcast */
+	 && ((the_ip.ip_dst.s_addr & 0xE0000000) != (0xE0000000 /* 224.0.0.0-239.255.255.255 */)) /* Not a multicast */
+	 && ((the_ip.ip_dst.s_addr) != (bcast.s_addr)) /* always broadcast (RFC919) */
 	 && (!(eee->allow_routing)) /* routing is enabled so let it in */
 	 )
       {
@@ -860,7 +882,7 @@ static int check_received_packet(n2n_edge_t * eee, char *pkt,
 
 	  /* This is a packet that needs to be routed */
 	  traceEvent(TRACE_INFO, "Discarding routed packet [rcvd=%s][expected=%s]",
-		     intoa(ntohl(the_ip->ip_dst.s_addr), ip_buf, sizeof(ip_buf)),
+		     intoa(ntohl(the_ip.ip_dst.s_addr), ip_buf, sizeof(ip_buf)),
 		     intoa(ntohl(eee->device.ip_addr), ip_buf2, sizeof(ip_buf2)));
       } else {
 	/* This packet is for us */
@@ -884,10 +906,7 @@ static int check_received_packet(n2n_edge_t * eee, char *pkt,
  *
  *  REVISIT: fails if more than one packet is waiting to be read.
  */
-#ifndef BUILD_FRONTEND
-static
-#endif
-void readFromTAPSocket( n2n_edge_t * eee )
+static void readFromTAPSocket( n2n_edge_t * eee )
 {
   /* tun -> remote */
   u_char decrypted_msg[2048];
@@ -944,7 +963,7 @@ void readFromIPSocket( n2n_edge_t * eee )
       else {
 	struct n2n_packet_header *hdr = &hdr_storage;
 
-	traceEvent(TRACE_INFO, "Received packet from %s:%hd",
+	traceEvent(TRACE_INFO, "Received packet from %s:%hu",
 		   intoa(ntohl(sender.addr_type.v4_addr), ip_buf, sizeof(ip_buf)),
 		   ntohs(sender.port));
 
@@ -1004,7 +1023,7 @@ void readFromIPSocket( n2n_edge_t * eee )
 	    /* else silently ignore empty packet. */
 
 	  } else if(hdr->msg_type == MSG_TYPE_REGISTER) {
-	    traceEvent(TRACE_INFO, "Received registration request from remote peer [ip=%s:%hd]",
+	    traceEvent(TRACE_INFO, "Received registration request from remote peer [ip=%s:%hu]",
 		       intoa(ntohl(hdr->public_ip.addr_type.v4_addr), ip_buf, sizeof(ip_buf)),
 		       ntohs(hdr->public_ip.port));
 	    if ( 0 == memcmp(hdr->dst_mac, (eee->device.mac_addr), 6) )
@@ -1015,7 +1034,7 @@ void readFromIPSocket( n2n_edge_t * eee )
 
 	    send_register(eee, &hdr->public_ip, 1); /* Send ACK back */
 	  } else if(hdr->msg_type == MSG_TYPE_REGISTER_ACK) {
-	    traceEvent(TRACE_NORMAL, "Received REGISTER_ACK from remote peer [ip=%s:%hd]",
+	    traceEvent(TRACE_NORMAL, "Received REGISTER_ACK from remote peer [ip=%s:%hu]",
 		       intoa(ntohl(hdr->public_ip.addr_type.v4_addr), ip_buf, sizeof(ip_buf)),
 		       ntohs(hdr->public_ip.port));
 
@@ -1074,7 +1093,7 @@ static void startTunReadThread(n2n_edge_t *eee) {
 
 /* ***************************************************** */
 
-void supernode2addr(n2n_edge_t * eee, char* addr) {
+static void supernode2addr(n2n_edge_t * eee, char* addr) {
   char *supernode_host = strtok(addr, ":");
 
   if(supernode_host) {
@@ -1116,7 +1135,7 @@ void supernode2addr(n2n_edge_t * eee, char* addr) {
       eee->supernode.addr_type.v4_addr = inet_addr(supernode_host);
     }
 
-    traceEvent(TRACE_NORMAL, "Using supernode %s:%hd",
+    traceEvent(TRACE_NORMAL, "Using supernode %s:%hu",
 	       intoa(ntohl(eee->supernode.addr_type.v4_addr), ip_buf, sizeof(ip_buf)),
 	       ntohs(eee->supernode.port));
   } else
@@ -1127,10 +1146,12 @@ void supernode2addr(n2n_edge_t * eee, char* addr) {
 
 extern int useSyslog;
 
+#define N2N_NETMASK_STR_SIZE 16 /* dotted decimal 12 numbers + 3 dots */
 
-#ifndef BUILD_FRONTEND
+
 int main(int argc, char* argv[]) {
-  int opt, local_port = 0 /* any port */;
+  int opt=0;
+  u_int16_t local_port = 0 /* any port */;
   char *tuntap_dev_name = "edge0";
   char *ip_addr = NULL;
   char  netmask[N2N_NETMASK_STR_SIZE]="255.255.255.0";
@@ -1273,7 +1294,7 @@ effectiveargv[effectiveargc] = 0;
       eee.re_resolve_supernode_ip = 1;
       break;
     case 'p':
-      local_port = atoi(optarg);
+      local_port = atoi(optarg) & 0xffff;
       break;
     case 's': /* Subnet Mask */
       if (0 != got_s) {
@@ -1321,7 +1342,7 @@ effectiveargv[effectiveargc] = 0;
 #endif
 
   if(local_port > 0)
-    traceEvent(TRACE_NORMAL, "Binding to local port %d", local_port);
+    traceEvent(TRACE_NORMAL, "Binding to local port %hu", local_port);
 
   if(edge_init_twofish( &eee, (u_int8_t *)(encrypt_key), strlen(encrypt_key) ) < 0) return(-1);
   eee.sinfo.sock = open_socket(local_port, eee.sinfo.is_udp_socket, 0);
@@ -1427,5 +1448,5 @@ effectiveargv[effectiveargc] = 0;
 
   return(0);
 }
-#endif //BUILD_FRONTEND
+
 

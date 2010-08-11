@@ -180,7 +180,7 @@ struct n2n_sock_info
 typedef struct n2n_sock_info    n2n_sock_info_t;
 
 struct peer_info {
-  char community_name[16], mac_addr[6];
+  char community_name[COMMUNITY_LEN], mac_addr[6];
   struct peer_addr public_ip, private_ip;
   time_t last_seen;
   struct peer_info *next;
@@ -248,7 +248,7 @@ extern int  tuntap_read(struct tuntap_dev *tuntap, unsigned char *buf, int len);
 extern int  tuntap_write(struct tuntap_dev *tuntap, unsigned char *buf, int len);
 extern void tuntap_close(struct tuntap_dev *tuntap);
 
-extern SOCKET open_socket(int local_port, int udp_sock, int server_mode);
+extern SOCKET open_socket(u_int16_t local_port, int udp_sock, int server_mode);
 extern int connect_socket(int sock_fd, struct peer_addr* dest);
 
 extern void send_packet(n2n_sock_info_t * sinfo,
