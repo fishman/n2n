@@ -16,9 +16,10 @@
  * along with this program; if not, see <http://www.gnu.org/licenses/>
  *
  * Code contributions courtesy of:
- * Babak Farrokhi <babak@farrokhi.net> [FreeBSD port]
+ *    Babak Farrokhi <babak@farrokhi.net> [FreeBSD port]
+ *    Lukasz Taczuk
  *
-*/
+ */
 
 #ifndef _N2N_H_
 #define _N2N_H_
@@ -39,8 +40,17 @@
 #define _DARWIN_
 #endif
 
+
+/* Some capability defaults which can be reset for particular platforms. */
+#define N2N_HAVE_DAEMON 1
+#define N2N_HAVE_SETUID 1
+/* #define N2N_CAN_NAME_IFACE */
+
+/* Moved here to define _CRT_SECURE_NO_WARNINGS before all the including takes place */
 #ifdef WIN32
 #include "win32/n2n_win32.h"
+#undef N2N_HAVE_DAEMON
+#undef N2N_HAVE_SETUID
 #endif
 
 #include <time.h>
@@ -50,6 +60,10 @@
 #ifndef WIN32
 #include <netdb.h>
 #endif
+
+#ifndef _MSC_VER
+#include <getopt.h>
+#endif /* #ifndef _MSC_VER */
 
 #include <stdio.h>
 #include <errno.h>
@@ -65,15 +79,31 @@
 #ifdef __linux__
 #include <linux/if.h>
 #include <linux/if_tun.h>
-#endif
+#define N2N_CAN_NAME_IFACE 1
+#endif /* #ifdef __linux__ */
 
 #ifdef __FreeBSD__
 #include <netinet/in_systm.h>
-#endif
+#endif /* #ifdef __FreeBSD__ */
 
 #include <syslog.h>
 #include <sys/wait.h>
-#include <net/ethernet.h>
+
+#define ETH_ADDR_LEN 6
+struct ether_hdr
+{
+    uint8_t  dhost[ETH_ADDR_LEN];
+    uint8_t  shost[ETH_ADDR_LEN];
+    uint16_t type;                /* higher layer protocol encapsulated */
+} __attribute__ ((__packed__));
+
+typedef struct ether_hdr ether_hdr_t;
+
+#ifdef __sun__
+#include <sys/sysmacros.h> /* MIN() and MAX() declared here */
+#undef N2N_HAVE_DAEMON
+#endif /* #ifdef __sun__ */
+
 #include <netinet/in.h>
 #include <netinet/ip.h>
 #include <netinet/udp.h>
@@ -83,46 +113,43 @@
 #include <unistd.h>
 
 #define closesocket(a) close(a)
-#endif
+#endif /* #ifndef WIN32 */
 
 #include <string.h>
-#ifdef WIN32
-#include "win32/getopt.h"
-#else
-#define _GNU_SOURCE
-#include <getopt.h>
-#endif
 
 #include <stdarg.h>
 
 #ifdef WIN32
 #include "win32/wintap.h"
-#endif
+#endif /* #ifdef WIN32 */
 
-#include "twofish.h"
+#include "n2n_wire.h"
 
+/* N2N_IFNAMSIZ is needed on win32 even if dev_name is not used after declaration */
+#define N2N_IFNAMSIZ            16 /* 15 chars * NULL */
 #ifndef WIN32
 typedef struct tuntap_dev {
   int           fd;
-  u_int8_t      mac_addr[6];
-  u_int32_t     ip_addr, device_mask;
-  u_int         mtu;
+  uint8_t       mac_addr[6];
+  uint32_t      ip_addr, device_mask;
+  uint16_t      mtu;
+  char          dev_name[N2N_IFNAMSIZ];
 } tuntap_dev;
 
 #define SOCKET int
 #endif /* #ifndef WIN32 */
 
 #define QUICKLZ               1
-#define N2N_PKT_VERSION       1
 
-#define MSG_TYPE_REGISTER     1 /* FIX invece di usare il sender del pacchetto scriverlo nel pacchetto stesso */
-#define MSG_TYPE_DEREGISTER   2
-#define MSG_TYPE_PACKET       3
-#define MSG_TYPE_REGISTER_ACK 4
-#define MSG_TYPE_ACK_RESPONSE 5
-
-#define COMMUNITY_LEN           16
-#define MIN_COMPRESSED_PKT_LEN  32
+/* N2N packet header indicators. */
+#define MSG_TYPE_REGISTER               1
+#define MSG_TYPE_DEREGISTER             2
+#define MSG_TYPE_PACKET                 3
+#define MSG_TYPE_REGISTER_ACK           4
+#define MSG_TYPE_REGISTER_SUPER         5
+#define MSG_TYPE_REGISTER_SUPER_ACK     6
+#define MSG_TYPE_REGISTER_SUPER_NAK     7
+#define MSG_TYPE_FEDERATION             8
 
 /* Set N2N_COMPRESSION_ENABLED to 0 to disable lzo1x compression of ethernet
  * frames. Doing this will break compatibility with the standard n2n packet
@@ -132,60 +159,19 @@ typedef struct tuntap_dev {
 
 #define DEFAULT_MTU   1400
 
-/* Maximum enum value is 255 due to marshalling into 1 byte */
-enum packet_type {
-  packet_unreliable_data = 0,  /* no ACK needed */
-  packet_reliable_data,    /* needs ACK     */
-  packet_ping,
-  packet_pong
-};
-
-/* All information is always in network byte-order */
-struct peer_addr {
-  u_int8_t family;
-  u_int16_t port;
-  union {
-    u_int8_t  v6_addr[16];
-    u_int32_t v4_addr;
-  } addr_type;
-};
-
-struct n2n_packet_header {
-  u_int8_t version, msg_type, ttl, sent_by_supernode;
-  char community_name[COMMUNITY_LEN], src_mac[6], dst_mac[6];
-  struct peer_addr public_ip, private_ip;
-  enum packet_type pkt_type;
-  u_int32_t sequence_id;
-  u_int32_t crc; // FIX - It needs to be handled for detcting forged packets
-};
-
-int marshall_n2n_packet_header( u_int8_t * buf, const struct n2n_packet_header * hdr );
-int unmarshall_n2n_packet_header( struct n2n_packet_header * hdr, const u_int8_t * buf );
-
-#define N2N_PKT_HDR_SIZE (sizeof(struct n2n_packet_header))
-
-
 /** Common type used to hold stringified IP addresses. */
 typedef char ipstr_t[32];
 
 /** Common type used to hold stringified MAC addresses. */
-typedef char macstr_t[32];
-
-struct n2n_sock_info
-{
-    int                 sock;
-    char                is_udp_socket /*= 1*/;    
-};
-
-typedef struct n2n_sock_info    n2n_sock_info_t;
+#define N2N_MACSTR_SIZE 32
+typedef char macstr_t[N2N_MACSTR_SIZE];
 
 struct peer_info {
-  char community_name[COMMUNITY_LEN], mac_addr[6];
-  struct peer_addr public_ip, private_ip;
-  time_t last_seen;
-  struct peer_info *next;
-  /* socket */
-  n2n_sock_info_t sinfo;
+    struct peer_info *  next;
+    n2n_community_t     community_name;
+    n2n_mac_t           mac_addr;
+    n2n_sock_t          sock;
+    time_t              last_seen;
 };
 
 struct n2n_edge; /* defined in edge.c */
@@ -194,18 +180,11 @@ typedef struct n2n_edge         n2n_edge_t;
 
 /* ************************************** */
 
-#if defined(DEBUG)
-#define SOCKET_TIMEOUT_INTERVAL_SECS    5
-#define REGISTER_FREQUENCY              20 /* sec */
-#else  /* #if defined(DEBUG) */
-#define SOCKET_TIMEOUT_INTERVAL_SECS    10
-#define REGISTER_FREQUENCY              60 /* sec */
-#endif /* #if defined(DEBUG) */
-
 #define TRACE_ERROR     0, __FILE__, __LINE__
 #define TRACE_WARNING   1, __FILE__, __LINE__
 #define TRACE_NORMAL    2, __FILE__, __LINE__
 #define TRACE_INFO      3, __FILE__, __LINE__
+#define TRACE_DEBUG     4, __FILE__, __LINE__
 
 /* ************************************** */
 
@@ -225,75 +204,51 @@ typedef struct n2n_edge         n2n_edge_t;
 /* ************************************** */
 
 /* Variables */
-// extern TWOFISH *tf;
+/* extern TWOFISH *tf; */
 extern int traceLevel;
-extern char broadcast_addr[6];
-extern char multicast_addr[6];
+extern int useSyslog;
+extern const uint8_t broadcast_addr[6];
+extern const uint8_t multicast_addr[6];
 
 /* Functions */
-extern void sockaddr_in2peer_addr(struct sockaddr_in *in, struct peer_addr *out);
-extern void peer_addr2sockaddr_in(const struct peer_addr *in, struct sockaddr_in *out);
-// extern int  init_n2n(u_int8_t *encrypt_pwd, u_int32_t encrypt_pwd_len );
-// extern void term_n2n();
-extern void send_ack(n2n_sock_info_t * sinfo,
-		     u_int16_t last_rcvd_seq_id,
-		     struct n2n_packet_header *header,
-		     struct peer_addr *remote_peer,
-		     char *src_mac);
-
 extern void traceEvent(int eventTraceLevel, char* file, int line, char * format, ...);
-extern int  tuntap_open(tuntap_dev *device, char *dev, char *device_ip, 
+extern int  tuntap_open(tuntap_dev *device, char *dev, const char *address_mode, char *device_ip, 
 			char *device_mask, const char * device_mac, int mtu);
 extern int  tuntap_read(struct tuntap_dev *tuntap, unsigned char *buf, int len);
 extern int  tuntap_write(struct tuntap_dev *tuntap, unsigned char *buf, int len);
 extern void tuntap_close(struct tuntap_dev *tuntap);
+extern void tuntap_get_address(struct tuntap_dev *tuntap);
 
-extern SOCKET open_socket(u_int16_t local_port, int udp_sock, int server_mode);
-extern int connect_socket(int sock_fd, struct peer_addr* dest);
+extern SOCKET open_socket(int local_port, int bind_any);
 
-extern void send_packet(n2n_sock_info_t * sinfo,
-			char *packet, size_t *packet_len,
-			const struct peer_addr *remote_peer,
-			u_int8_t compress_data);
-extern char* intoa(u_int32_t addr, char* buf, u_short buf_len);
-extern char* macaddr_str(const char *mac, char *buf, int buf_len);
-extern int   str2mac( u_int8_t * outmac /* 6 bytes */, const char * s );
-extern void fill_standard_header_fields(n2n_sock_info_t * eee,
-					struct n2n_packet_header *hdr,
-					char *src_mac);
+extern char* intoa(uint32_t addr, char* buf, uint16_t buf_len);
+extern char* macaddr_str(macstr_t buf, const n2n_mac_t mac);
+extern int   str2mac( uint8_t * outmac /* 6 bytes */, const char * s );
+extern char * sock_to_cstr( n2n_sock_str_t out,
+                            const n2n_sock_t * sock );
 
-extern u_int receive_data(n2n_sock_info_t * sinfo,
-			  char *packet, size_t packet_len, 
-			  struct peer_addr *from, u_int8_t *discarded_pkt,
-			  char *tun_mac_addr, u_int8_t decompress_data,
-			  struct n2n_packet_header *hdr);
-extern u_int reliable_sendto(n2n_sock_info_t * sinfo,
-			     char *packet, size_t *packet_len, 
-			     const struct peer_addr *from, u_int8_t compress_data);
-extern u_int unreliable_sendto(n2n_sock_info_t * sinfo,
-			       char *packet, size_t *packet_len, 
-			       const struct peer_addr *from, u_int8_t compress_data);
-extern u_int send_data(n2n_sock_info_t * sinfo,
-		       char *packet, size_t *packet_len, 
-		       const struct peer_addr *to, u_int8_t compress_data);
-extern u_int8_t is_multi_broadcast(char *dest_mac);
-extern char* msg_type2str(u_short msg_type);
-extern void hexdump(char *buf, u_int len);
+extern int sock_equal( const n2n_sock_t * a, 
+                       const n2n_sock_t * b );
+
+extern uint8_t is_multi_broadcast(const uint8_t * dest_mac);
+extern char* msg_type2str(uint16_t msg_type);
+extern void hexdump(const uint8_t * buf, size_t len);
 
 void print_n2n_version();
 
 
 /* Operations on peer_info lists. */
 struct peer_info * find_peer_by_mac( struct peer_info * list,
-                                     const char * mac );
+                                     const n2n_mac_t mac );
 void   peer_list_add( struct peer_info * * list,
                       struct peer_info * new );
 size_t peer_list_size( const struct peer_info * list );
 size_t purge_peer_list( struct peer_info ** peer_list, 
                         time_t purge_before );
+size_t clear_peer_list( struct peer_info ** peer_list );
 size_t purge_expired_registrations( struct peer_info ** peer_list );
 
 /* version.c */
-extern char *version, *osName, *buildDate;
+extern char *n2n_sw_version, *n2n_sw_osName, *n2n_sw_buildDate;
 
 #endif /* _N2N_H_ */

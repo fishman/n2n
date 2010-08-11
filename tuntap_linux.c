@@ -19,7 +19,7 @@
 
 #ifdef __linux__
 
-static void read_mac(char *ifname, char *mac_addr) {
+static void read_mac(char *ifname, n2n_mac_t mac_addr) {
   int _sock, res;
   struct ifreq ifr;
   macstr_t mac_addr_buf;
@@ -37,7 +37,7 @@ static void read_mac(char *ifname, char *mac_addr) {
 
   traceEvent(TRACE_NORMAL, "Interface %s has MAC %s",
 	     ifname,
-	     macaddr_str(mac_addr, mac_addr_buf, sizeof(mac_addr_buf)));
+	     macaddr_str(mac_addr_buf, mac_addr ));
   close(_sock);
 }
 
@@ -60,6 +60,7 @@ static void read_mac(char *ifname, char *mac_addr) {
  */
 int tuntap_open(tuntap_dev *device, 
                 char *dev, /* user-definable interface name, eg. edge0 */
+                const char *address_mode, /* static or dhcp */
                 char *device_ip, 
                 char *device_mask,
                 const char * device_mac,
@@ -87,7 +88,10 @@ int tuntap_open(tuntap_dev *device,
     return -1;
   }
 
-  if ( device_mac )
+  /* Store the device name for later reuse */
+  strncpy(device->dev_name, ifr.ifr_name, MIN(IFNAMSIZ, N2N_IFNAMSIZ) );
+
+  if ( device_mac && device_mac[0] != '\0' )
   {
       /* Set the hw address before bringing the if up. */
       snprintf(buf, sizeof(buf), "/sbin/ifconfig %s hw ether %s",
@@ -96,14 +100,23 @@ int tuntap_open(tuntap_dev *device,
       traceEvent(TRACE_INFO, "Setting MAC: %s", buf);
   }
 
-  snprintf(buf, sizeof(buf), "/sbin/ifconfig %s %s netmask %s mtu %d up",
-           ifr.ifr_name, device_ip, device_mask, mtu);
+  if ( 0 == strncmp( "dhcp", address_mode, 5 ) )
+  {
+      snprintf(buf, sizeof(buf), "/sbin/ifconfig %s %s mtu %d up",
+               ifr.ifr_name, device_ip, mtu);
+  }
+  else
+  {
+      snprintf(buf, sizeof(buf), "/sbin/ifconfig %s %s netmask %s mtu %d up",
+               ifr.ifr_name, device_ip, device_mask, mtu);
+  }
+
   system(buf);
   traceEvent(TRACE_INFO, "Bringing up: %s", buf);
 
   device->ip_addr = inet_addr(device_ip);
   device->device_mask = inet_addr(device_mask);
-  read_mac(dev, (char*)device->mac_addr);
+  read_mac(dev, device->mac_addr);
   return(device->fd);
 }
 
@@ -118,5 +131,35 @@ int tuntap_write(struct tuntap_dev *tuntap, unsigned char *buf, int len) {
 void tuntap_close(struct tuntap_dev *tuntap) {
   close(tuntap->fd);
 }
+
+/* Fill out the ip_addr value from the interface. Called to pick up dynamic
+ * address changes. */
+void tuntap_get_address(struct tuntap_dev *tuntap)
+{
+    FILE * fp=NULL;
+    ssize_t nread=0;
+    char buf[N2N_LINUX_SYSTEMCMD_SIZE];
+
+    /* Would rather have a more direct way to get the inet address but a netlink
+     * socket is overkill and probably less portable than ifconfig and sed. */
+
+    /* If the interface has no address (0.0.0.0) there will be no inet addr
+     * line and the returned string will be empty. */
+    snprintf( buf, sizeof(buf), "/sbin/ifconfig %s | /bin/sed -e '/inet addr:/!d' -e 's/^.*inet addr://' -e 's/ .*$//'",
+              tuntap->dev_name );
+    fp=popen(buf, "r");
+    if (fp )
+    {
+        memset(buf,0,N2N_LINUX_SYSTEMCMD_SIZE); /* make sure buf is NULL terminated. */
+        nread=fread(buf, 1, 15, fp);
+        fclose(fp);
+        fp=NULL;
+
+        traceEvent(TRACE_INFO, "ifconfig address = %s", buf);
+
+        tuntap->ip_addr = inet_addr(buf);
+    }
+}
+
 
 #endif /* #ifdef __linux__ */

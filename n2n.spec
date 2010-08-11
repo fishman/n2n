@@ -1,6 +1,6 @@
 Summary: N2N peer-to-peer virtual private network system.
 Name: n2n
-Version: 1.3
+Version: 2.1.0
 Release: 1
 License: GPLv3
 Vendor: ntop.org
@@ -12,10 +12,12 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 %description
 N2N is a peer-to-peer virtual private network system. N2N uses the universal
 TUNTAP interface to create TAP network interfaces to an encrypted virtual
-LAN. Members of a community share a common encryption key which allows echange
-of data. The supernode is used for peer discovery and initial packet relay
-before direct peer-to-peer exchange is established.
-Once direct packet exchange is established, the supernode is not required.
+LAN. Members of a community share encryption keys which allow exchange of
+data. The supernode is used for peer discovery and initial packet relay before
+direct peer-to-peer exchange is established.  Once direct packet exchange is
+established, the supernode is not required.
+
+N2N-2 introduces additional security features and multiple supernodes.
 
 %prep
 
@@ -35,13 +37,16 @@ rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(-,root,root,-)
-     /usr/bin/supernode
+     /usr/sbin/supernode
      /usr/sbin/edge
 %doc /usr/share/man/man1/supernode.1.gz
 %doc /usr/share/man/man8/edge.8.gz
+%doc /usr/share/man/man7/n2n_v2.7.gz
 
 
 %changelog
+* Fri Oct 30 2009 Richard Andrews <andrews@ntop.org> -
+- First beta for n2n-2
 * Sat May  3 2008 Richard Andrews <andrews@ntop.org> - 
 - Initial build.
 

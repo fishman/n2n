@@ -1,5 +1,5 @@
 /*
-  (C) 2007-08 - Luca Deri <deri@ntop.org>
+  (C) 2007-09 - Luca Deri <deri@ntop.org>
 */
 
 #include "../n2n.h"
@@ -22,8 +22,11 @@ void initWin32() {
 }
 
 int open_wintap(struct tuntap_dev *device,
-				char *device_ip, char *device_mask,
-				char *device_mac, int mtu) {
+                const char * address_mode, /* "static" or "dhcp" */
+                char *device_ip, 
+                char *device_mask,
+                const char *device_mac, 
+                int mtu) {
   HKEY key, key2;
   LONG rc;
   char regpath[1024], cmd[256];
@@ -45,11 +48,15 @@ int open_wintap(struct tuntap_dev *device,
   if((rc = RegOpenKeyEx(HKEY_LOCAL_MACHINE, NETWORK_CONNECTIONS_KEY, 0, KEY_READ, &key))) {
     printf("Unable to read registry: [rc=%d]\n", rc);
     exit(-1);
+    /* MSVC Note: If you keep getting rc=2 errors, make sure you set:
+       Project -> Properties -> Configuration Properties -> General -> Character set
+       to: "Use Multi-Byte Character Set"
+    */
   }
 
   for (i = 0; ; i++) {
     len = sizeof(adapterid);
-    if(RegEnumKeyEx(key, i, (LPCWSTR)adapterid, &len, 0, 0, 0, NULL))
+    if(RegEnumKeyEx(key, i, (LPTSTR)adapterid, &len, 0, 0, 0, NULL))
       break;
 
     /* Find out more about this adapter */
@@ -146,9 +153,18 @@ int open_wintap(struct tuntap_dev *device,
 
   printf("Setting %s device address...\n", device->ifName);
 
-  _snprintf(cmd, sizeof(cmd),
-	    "netsh interface ip set address \"%s\" static %s %s",
-	    device->ifName, device_ip, device_mask);
+  if ( 0 == strcmp("dhcp", address_mode) )
+  {
+      _snprintf(cmd, sizeof(cmd),
+                "netsh interface ip set address \"%s\" dhcp",
+                device->ifName);
+  }
+  else
+  {
+      _snprintf(cmd, sizeof(cmd),
+                "netsh interface ip set address \"%s\" static %s %s",
+                device->ifName, device_ip, device_mask);
+  }
 
   if(system(cmd) == 0) {
     device->ip_addr = inet_addr(device_ip);
@@ -239,15 +255,26 @@ int tuntap_write(struct tuntap_dev *tuntap, unsigned char *buf, int len)
 
 /* ************************************************ */
 
-int  tuntap_open(tuntap_dev *device, char *dev, char *device_ip, 
-				 char *device_mask, const char * device_mac, int mtu) {
-  return(open_wintap(device, device_ip, device_mask, device_mac, mtu));
+int tuntap_open(struct tuntap_dev *device, 
+                char *dev, 
+                const char *address_mode, /* static or dhcp */
+                char *device_ip, 
+                char *device_mask, 
+                const char * device_mac, 
+                int mtu) {
+    return(open_wintap(device, address_mode, device_ip, device_mask, device_mac, mtu));
 }
 
 /* ************************************************ */
 
 void tuntap_close(struct tuntap_dev *tuntap) {
   CloseHandle(tuntap->device_handle);
+}
+
+/* Fill out the ip_addr value from the interface. Called to pick up dynamic
+ * address changes. */
+void tuntap_get_address(struct tuntap_dev *tuntap)
+{
 }
 
 /* ************************************************ */
@@ -260,7 +287,7 @@ int main(int argc, char* argv[]) {
 
   printf("Welcome to n2n\n");
   initWin32();
-  open_wintap(&tuntap, "1.2.3.20", "255.255.255.0", mtu);
+  open_wintap(&tuntap, "static", "1.2.3.20", "255.255.255.0", mtu);
 
   for(i=0; i<10; i++) {
     u_char buf[MTU];
