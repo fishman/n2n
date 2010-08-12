@@ -1,0 +1,7 @@
+//
+// Prefix header for all source files of the 'n2n' target in the 'n2n' project
+//
+
+#ifdef __OBJC__
+    #import <Cocoa/Cocoa.h>
+#endif

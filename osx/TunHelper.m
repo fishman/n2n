@@ -1,0 +1,199 @@
+//
+//  TunHelper.m
+//  n2n
+//
+//  Created by Reza Jelveh on 10/6/09.
+//  Copyright 2009 Flying Seagull. All rights reserved.
+//
+
+#import <Foundation/Foundation.h>
+#include <sys/socket.h>
+#include <sys/un.h>
+#include <sys/stat.h>
+#include <sys/ioctl.h>
+#include <net/if.h>
+#include <arpa/inet.h>
+#include <sys/sockio.h>
+#include <limits.h>
+#include <signal.h>
+
+#define ADDRESS "/tmp/n2n"
+#define N2N_OSX_TAPDEVICE_SIZE 32
+#define TAP_IFNAME_LEN         7 /* tap255 - longest name */
+
+#define QLEN 10
+
+/* size of control buffer to send/recv one file descriptor */
+#define CONTROLLEN  CMSG_LEN(sizeof(int))
+
+static struct cmsghdr   *cmptr = NULL;  /* malloc'ed first time */
+
+#define assumes(e)  \
+        (__builtin_expect(!(e), 0) ? _log_tap_bug(__FILE__, __LINE__, #e), false : true)
+
+void
+_log_tap_bug(const char *path, unsigned int line, const char *test)
+{
+    int saved_errno = errno;
+    const char *file = strrchr(path, '/');
+
+    if (!file) {
+        file = path;
+    } else {
+        file += 1;
+    }
+
+    fprintf(stderr, "Bug: %s:%u %u: %s\n", file, line, saved_errno, test);
+}
+
+/*
+ * Pass a file descriptor to another process.
+ * If fd<0, then -fd is sent back instead as the error status.
+ */
+int
+send_fd(int fd, int fd_to_send)
+{
+    struct iovec    iov[1];
+    struct msghdr   msg;
+    char            buf[2]; /* send_fd()/recv_fd() 2-byte protocol */
+
+    iov[0].iov_base = buf;
+    iov[0].iov_len  = 2;
+    msg.msg_iov     = iov;
+    msg.msg_iovlen  = 1;
+    msg.msg_name    = NULL;
+    msg.msg_namelen = 0;
+    if (fd_to_send < 0) {
+        msg.msg_control    = NULL;
+        msg.msg_controllen = 0;
+        buf[1] = -fd_to_send;   /* nonzero status means error */
+        if (buf[1] == 0)
+            buf[1] = 1; /* -256, etc. would screw up protocol */
+    } else {
+        if (cmptr == NULL && (cmptr = malloc(CONTROLLEN)) == NULL)
+            return(-1);
+        cmptr->cmsg_level  = SOL_SOCKET;
+        cmptr->cmsg_type   = SCM_RIGHTS;
+        cmptr->cmsg_len    = CONTROLLEN;
+        msg.msg_control    = cmptr;
+        msg.msg_controllen = CONTROLLEN;
+        *(int *)CMSG_DATA(cmptr) = fd_to_send;     /* the fd to pass */
+        buf[1] = 0;          /* zero status means OK */
+    }
+    buf[0] = 0;              /* null byte flag to recv_fd() */
+    if (sendmsg(fd, &msg, 0) != 2)
+        return(-1);
+    return(0);
+}
+
+int sock_server(int fd_to_send){
+    int fd, cfd;
+    struct sockaddr_un saun;
+
+    if((fd = socket(PF_UNIX, SOCK_STREAM, 0)) < 0){
+        perror("server: socket");
+        return -1;
+    }
+
+    saun.sun_family = AF_UNIX;
+    strcpy(saun.sun_path, ADDRESS);
+    unlink(saun.sun_path);
+
+    if (bind(fd, (struct sockaddr *)&saun, sizeof(saun)) < 0) {
+        perror("server: bind");
+        return -2;
+    }
+    chmod(saun.sun_path, 0777);
+
+    if (listen(fd, QLEN) < 0) { /* tell kernel we're a server */
+        perror("server: listen");
+        return -3;
+    }
+
+    NSLog(@"Waiting for client connection");
+    cfd = accept(fd, NULL, NULL);
+    if (cfd < 0) {
+        perror("server: accept");
+        return -4;
+    }
+
+    if (send_fd(cfd, fd_to_send)) {
+        perror("client: send fd");
+        return -1;
+    }
+    NSLog(@"Sent file descriptor");
+
+    return fd;
+}
+
+void
+setup_ipv4(int tap_device, char *ip, char *netmask, int mtu)
+{
+    struct ifaliasreq ifra;
+    struct ifreq ifr;
+    int s;
+
+    char tap_name[TAP_IFNAME_LEN];
+    snprintf(tap_name, sizeof(tap_name), "tap%d", tap_device);
+
+    memset(&ifr, 0, sizeof(ifr));
+    strncpy(ifr.ifr_name, tap_name, IFNAMSIZ);
+
+    if ((s = socket(AF_INET, SOCK_DGRAM, 0)) == -1)
+        return;
+
+    if (assumes(ioctl(s, SIOCGIFFLAGS, &ifr) != -1)) {
+        ifr.ifr_flags |= IFF_UP;
+        assumes(ioctl(s, SIOCSIFFLAGS, &ifr) != -1);
+    }
+
+    ifr.ifr_mtu = mtu;
+    assumes(ioctl(s, SIOCSIFMTU, &ifr) != -1);
+
+    /* delete ifaddr, important! otherwise the system might lockup */
+    assumes(ioctl(s, SIOCDIFADDR, &ifr) != -1);
+
+    memset(&ifra, 0, sizeof(ifra));
+    strncpy(ifra.ifra_name, tap_name, IFNAMSIZ);
+    ((struct sockaddr_in *)&ifra.ifra_addr)->sin_family = AF_INET;
+    ((struct sockaddr_in *)&ifra.ifra_addr)->sin_addr.s_addr = inet_addr(ip);
+    ((struct sockaddr_in *)&ifra.ifra_addr)->sin_len = sizeof(struct sockaddr_in);
+    ((struct sockaddr_in *)&ifra.ifra_mask)->sin_family = AF_INET;
+    ((struct sockaddr_in *)&ifra.ifra_mask)->sin_addr.s_addr = inet_addr(netmask);
+    ((struct sockaddr_in *)&ifra.ifra_mask)->sin_len = sizeof(struct sockaddr_in);
+
+    assumes(ioctl(s, SIOCAIFADDR, &ifra) != -1);
+
+    assumes(close(s) == 0);
+}
+
+
+int main (int argc, const char * argv[]) {
+    int fd, i;
+    char tap_device[N2N_OSX_TAPDEVICE_SIZE];
+    char ip_address[255];
+    NSAutoreleasePool * pool = [[NSAutoreleasePool alloc] init];
+
+    if(argc<2){
+        NSLog(@"TunHelper, ip address is missing");
+        return -1;
+    }
+    strncpy(ip_address, argv[1], sizeof(ip_address));
+
+    NSLog(@"TunHelper started!, ip: %s, %d", ip_address, argc);
+    for (i = 0; i < 255; i++) {
+        snprintf(tap_device, sizeof(tap_device), "/dev/tap%d", i);
+
+        fd = open(tap_device, O_RDWR);
+        if(fd > 0) {
+            NSLog(@"Succesfully opened %s, fd: %d", tap_device, fd);
+
+            setup_ipv4(i,ip_address, "255.255.255.0", 1400);
+            sock_server(fd);
+            break;
+        }
+    }
+
+    [pool drain];
+    return i;
+}
