@@ -166,8 +166,13 @@ int tuntap_open(tuntap_dev *device /* ignored */,
         system(buf);
     }
 
+#if 0
     snprintf(buf, sizeof(buf), "ifconfig tap%d %s netmask %s mtu %d up",
              i, device_ip, device_mask, mtu);
+    system(buf);
+#endif
+
+    snprintf(buf, sizeof(buf), "sudo ipconfig set tap%d DHCP", i);
     system(buf);
 
     traceEvent(TRACE_NORMAL, "Interface tap%d up and running (%s/%s)",

@@ -161,7 +161,7 @@
     memset(&(eee.supernode), 0, sizeof(eee.supernode));
     eee.supernode.family = AF_INET;
 
-    eee.sn_num = 1;
+    eee.sn_num = 0;
     strncpy( (eee.sn_ip_array[0]), supernode_ip, N2N_EDGE_SN_HOST_SIZE);
     supernode2addr(&(eee.supernode), eee.sn_ip_array[0]);
 
