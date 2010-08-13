@@ -1,3 +1,5 @@
+.DS_Store
+osx/build
 edge
 supernode
 *dSYM
