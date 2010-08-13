@@ -12,6 +12,15 @@
 
 @implementation N2NThread
 
+- (void)edgeCleanup:(n2n_edge_t *)eee {
+    send_deregister( eee, &(eee->supernode));
+
+    closesocket(eee->udp_sock);
+    tuntap_close(&(eee->device));
+
+    edge_deinit( eee );
+}
+
 - (void)runLoop:(n2n_edge_t *)eee {
     int   keep_running=1;
     size_t numPurged;
@@ -111,13 +120,7 @@
 
     } /* while */
 
-
-    send_deregister( eee, &(eee->supernode));
-
-    closesocket(eee->udp_sock);
-    tuntap_close(&(eee->device));
-
-    edge_deinit( eee );
+    [self edgeCleanup:eee];
 }
 
 - (void) threadMethod:(id)theObject
@@ -238,14 +241,6 @@
 - (void) edgeDisconnect:(NSNotification *)notification
 {
     [edgeThread cancel];
-#if 0
-    send_deregister( &eee, &(eee.supernode));
-
-    closesocket(eee.sinfo.sock);
-    tuntap_close(&(eee.device));
-
-    edge_deinit( &eee );
-#endif
 }
 
 
