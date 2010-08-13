@@ -23,111 +23,7 @@
  *
  */
 
-#include "n2n.h"
-#include "n2n_transforms.h"
-#include <assert.h>
-#include <sys/stat.h>
-#include "minilzo.h"
-
-#if defined(DEBUG)
-#define SOCKET_TIMEOUT_INTERVAL_SECS    5
-#define REGISTER_SUPER_INTERVAL_DFL     20 /* sec */
-#else  /* #if defined(DEBUG) */
-#define SOCKET_TIMEOUT_INTERVAL_SECS    10
-#define REGISTER_SUPER_INTERVAL_DFL     60 /* sec */
-#endif /* #if defined(DEBUG) */
-
-#define REGISTER_SUPER_INTERVAL_MIN     20   /* sec */
-#define REGISTER_SUPER_INTERVAL_MAX     3600 /* sec */
-
-#define IFACE_UPDATE_INTERVAL           (30) /* sec. How long it usually takes to get an IP lease. */
-#define TRANSOP_TICK_INTERVAL           (10) /* sec */
-
-/** maximum length of command line arguments */
-#define MAX_CMDLINE_BUFFER_LENGTH    4096
-
-/** maximum length of a line in the configuration file */
-#define MAX_CONFFILE_LINE_LENGTH        1024
-
-#define N2N_PATHNAME_MAXLEN             256
-#define N2N_MAX_TRANSFORMS              16
-#define N2N_EDGE_MGMT_PORT              5644
-
-/** Positions in the transop array where various transforms are stored.
- *
- *  Used by transop_enum_to_index(). See also the transform enumerations in
- *  n2n_transforms.h */
-#define N2N_TRANSOP_NULL_IDX    0
-#define N2N_TRANSOP_TF_IDX      1
-#define N2N_TRANSOP_AESCBC_IDX  2
-/* etc. */
-
-
-
-/* Work-memory needed for compression. Allocate memory in units
- * of `lzo_align_t' (instead of `char') to make sure it is properly aligned.
- */
-
-/* #define HEAP_ALLOC(var,size)						\ */
-/*   lzo_align_t __LZO_MMODEL var [ ((size) + (sizeof(lzo_align_t) - 1)) / sizeof(lzo_align_t) ] */
-
-/* static HEAP_ALLOC(wrkmem,LZO1X_1_MEM_COMPRESS); */
-
-/* ******************************************************* */
-
-#define N2N_EDGE_SN_HOST_SIZE 48
-
-typedef char n2n_sn_name_t[N2N_EDGE_SN_HOST_SIZE];
-
-#define N2N_EDGE_NUM_SUPERNODES 2
-#define N2N_EDGE_SUP_ATTEMPTS   3       /* Number of failed attmpts before moving on to next supernode. */
-
-
-/** Main structure type for edge. */
-struct n2n_edge
-{
-    int                 daemon;                 /**< Non-zero if edge should detach and run in the background. */
-    uint8_t             re_resolve_supernode_ip;
-
-    n2n_sock_t          supernode;
-
-    size_t              sn_idx;                 /**< Currently active supernode. */
-    size_t              sn_num;                 /**< Number of supernode addresses defined. */
-    n2n_sn_name_t       sn_ip_array[N2N_EDGE_NUM_SUPERNODES];
-    int                 sn_wait;                /**< Whether we are waiting for a supernode response. */
-
-    n2n_community_t     community_name;         /**< The community. 16 full octets. */
-    char                keyschedule[N2N_PATHNAME_MAXLEN];
-    int                 null_transop;           /**< Only allowed if no key sources defined. */
-
-    int                 udp_sock;
-    int                 udp_mgmt_sock;          /**< socket for status info. */
-
-    tuntap_dev          device;                 /**< All about the TUNTAP device */
-    int                 dyn_ip_mode;            /**< Interface IP address is dynamically allocated, eg. DHCP. */
-    int                 allow_routing;          /**< Accept packet no to interface address. */
-    int                 drop_multicast;         /**< Multicast ethernet addresses. */
-
-    n2n_trans_op_t      transop[N2N_MAX_TRANSFORMS]; /* one for each transform at fixed positions */
-    size_t              tx_transop_idx;         /**< The transop to use when encoding. */
-
-    struct peer_info *  known_peers;            /**< Edges we are connected to. */
-    struct peer_info *  pending_peers;          /**< Edges we have tried to register with. */
-    time_t              last_register_req;      /**< Check if time to re-register with super*/
-    size_t              register_lifetime;      /**< Time distance after last_register_req at which to re-register. */
-    time_t              last_p2p;               /**< Last time p2p traffic was received. */
-    time_t              last_sup;               /**< Last time a packet arrived from supernode. */
-    size_t              sup_attempts;           /**< Number of remaining attempts to this supernode. */
-    n2n_cookie_t        last_cookie;            /**< Cookie sent in last REGISTER_SUPER. */
-
-    time_t              start_time;             /**< For calculating uptime */
-
-    /* Statistics */
-    size_t              tx_p2p;
-    size_t              rx_p2p;
-    size_t              tx_sup;
-    size_t              rx_sup;
-};
+#include "edge.h"
 
 /** Return the IP address of the current supernode in the ring. */
 static const char * supernode_ip( const n2n_edge_t * eee )
@@ -136,7 +32,10 @@ static const char * supernode_ip( const n2n_edge_t * eee )
 }
 
 
-static void supernode2addr(n2n_sock_t * sn, const n2n_sn_name_t addr);
+#ifndef BUILD_FRONTEND
+static
+#endif
+void supernode2addr(n2n_sock_t * sn, const n2n_sn_name_t addr);
 
 static void send_packet2net(n2n_edge_t * eee,
 			    uint8_t *decrypted_msg, size_t len);
@@ -271,7 +170,10 @@ static char ** buildargv(int * effectiveargc, char * const linebuffer) {
  *
  *  This also initialises the NULL transform operation opstruct.
  */
-static int edge_init(n2n_edge_t * eee)
+#ifndef BUILD_FRONTEND
+static
+#endif
+int edge_init(n2n_edge_t * eee)
 {
 #ifdef WIN32
     initWin32();
@@ -315,7 +217,10 @@ static int edge_init(n2n_edge_t * eee)
 
 
 /* Called in main() after options are parsed. */
-static int edge_init_twofish( n2n_edge_t * eee, uint8_t *encrypt_pwd, uint32_t encrypt_pwd_len )
+#ifndef BUILD_FRONTEND
+static
+#endif
+int edge_init_twofish( n2n_edge_t * eee, uint8_t *encrypt_pwd, uint32_t encrypt_pwd_len )
 {
     return transop_twofish_setup( &(eee->transop[N2N_TRANSOP_TF_IDX]), 0, encrypt_pwd, encrypt_pwd_len );
 }
@@ -346,7 +251,10 @@ static int transop_enum_to_index( n2n_transform_t id )
 
 /** Called periodically to roll keys and do any periodic maintenance in the
  *  tranform operations state machines. */
-static int n2n_tick_transop( n2n_edge_t * eee, time_t now )
+#ifndef BUILD_FRONTEND
+static
+#endif
+int n2n_tick_transop( n2n_edge_t * eee, time_t now )
 {
     n2n_tostat_t tst;
     size_t trop = eee->tx_transop_idx;
@@ -385,7 +293,10 @@ static int n2n_tick_transop( n2n_edge_t * eee, time_t now )
  *  encoding can be passed to the correct trans_op. The trans_op internal table
  *  will then determine the best SA for that trans_op from the key schedule to
  *  use for encoding. */
-static int edge_init_keyschedule( n2n_edge_t * eee )
+#ifndef BUILD_FRONTEND
+static
+#endif
+int edge_init_keyschedule( n2n_edge_t * eee )
 {
 
 #define N2N_NUM_CIPHERSPECS 32
@@ -442,7 +353,10 @@ static int edge_init_keyschedule( n2n_edge_t * eee )
 
 
 /** Deinitialise the edge and deallocate any owned memory. */
-static void edge_deinit(n2n_edge_t * eee)
+#ifndef BUILD_FRONTEND
+static
+#endif
+void edge_deinit(n2n_edge_t * eee)
 {
     if ( eee->udp_sock >=0 )
     {
@@ -461,10 +375,17 @@ static void edge_deinit(n2n_edge_t * eee)
     (eee->transop[N2N_TRANSOP_NULL_IDX].deinit)(&eee->transop[N2N_TRANSOP_NULL_IDX]);
 }
 
-static void readFromIPSocket( n2n_edge_t * eee );
+#ifndef BUILD_FRONTEND
+static
+#endif
+void readFromIPSocket( n2n_edge_t * eee );
 
-static void readFromMgmtSocket( n2n_edge_t * eee, int * keep_running );
+#ifndef BUILD_FRONTEND
+static
+#endif
+void readFromMgmtSocket( n2n_edge_t * eee, int * keep_running );
 
+#ifndef BUILD_FRONTEND
 static void help() {
   print_n2n_version();
 
@@ -522,6 +443,7 @@ static void help() {
 
   exit(0);
 }
+#endif
 
 
 /** Send a datagram to a socket defined by a n2n_sock_t */
@@ -666,7 +588,10 @@ static void send_register_ack( n2n_edge_t * eee,
  *  This would send a DEREGISTER packet to a peer edge or supernode to indicate
  *  the edge is going away.
  */
-static void send_deregister(n2n_edge_t * eee,
+#ifndef BUILD_FRONTEND
+static
+#endif
+void send_deregister(n2n_edge_t * eee,
                             n2n_sock_t * remote_peer)
 {
     /* Marshall and send message */
@@ -1013,7 +938,10 @@ static void send_grat_arps(n2n_edge_t * eee,) {
  *
  *  This is frequently called by the main loop.
  */
-static void update_supernode_reg( n2n_edge_t * eee, time_t nowTime )
+#ifndef BUILD_FRONTEND
+static
+#endif
+void update_supernode_reg( n2n_edge_t * eee, time_t nowTime )
 {
     if ( eee->sn_wait && ( nowTime > (eee->last_register_req + (eee->register_lifetime/10) ) ) )
     {
@@ -1305,7 +1233,10 @@ static int is_ethMulticast( const void * buf, size_t bufsize )
 /** Read a single packet from the TAP interface, process it and write out the
  *  corresponding packet to the cooked socket.
  */
-static void readFromTAPSocket( n2n_edge_t * eee )
+#ifndef BUILD_FRONTEND
+static
+#endif
+void readFromTAPSocket( n2n_edge_t * eee )
 {
     /* tun -> remote */
     uint8_t             eth_pkt[N2N_PKT_BUF_SIZE];
@@ -1417,7 +1348,10 @@ static int handle_PACKET( n2n_edge_t * eee,
 
 /** Read a datagram from the management UDP socket and take appropriate
  *  action. */
-static void readFromMgmtSocket( n2n_edge_t * eee, int * keep_running )
+#ifndef BUILD_FRONTEND
+static
+#endif
+void readFromMgmtSocket( n2n_edge_t * eee, int * keep_running )
 {
     uint8_t             udp_buf[N2N_PKT_BUF_SIZE];      /* Compete UDP packet */
     ssize_t             recvlen;
@@ -1577,7 +1511,10 @@ static void readFromMgmtSocket( n2n_edge_t * eee, int * keep_running )
 
 
 /** Read a datagram from the main UDP socket to the internet. */
-static void readFromIPSocket( n2n_edge_t * eee )
+#ifndef BUILD_FRONTEND
+static
+#endif
+void readFromIPSocket( n2n_edge_t * eee )
 {
     n2n_common_t        cmn; /* common fields in the packet header */
 
@@ -1804,7 +1741,10 @@ static void startTunReadThread(n2n_edge_t *eee)
  *  REVISIT: This is a really bad idea. The edge will block completely while the
  *           hostname resolution is performed. This could take 15 seconds.
  */
-static void supernode2addr(n2n_sock_t * sn, const n2n_sn_name_t addrIn)
+#ifndef BUILD_FRONTEND
+static
+#endif
+void supernode2addr(n2n_sock_t * sn, const n2n_sn_name_t addrIn)
 {
     n2n_sn_name_t addr;
 	const char *supernode_host;
@@ -1880,7 +1820,10 @@ static void supernode2addr(n2n_sock_t * sn, const n2n_sn_name_t addrIn)
  *
  *  return 0 on success and -1 on error
  */
-static int scan_address( char * ip_addr, size_t addr_size,
+#ifndef BUILD_FRONTEND
+static
+#endif
+int scan_address( char * ip_addr, size_t addr_size,
                          char * ip_mode, size_t mode_size,
                          const char * s )
 {
@@ -1921,11 +1864,8 @@ static int scan_address( char * ip_addr, size_t addr_size,
 
 static int run_loop(n2n_edge_t * eee );
 
-#define N2N_NETMASK_STR_SIZE    16 /* dotted decimal 12 numbers + 3 dots */
-#define N2N_MACNAMSIZ           18 /* AA:BB:CC:DD:EE:FF + NULL*/
-#define N2N_IF_MODE_SIZE        16 /* static | dhcp */
-
 /** Entry point to program from kernel. */
+#ifndef BUILD_FRONTEND
 int main(int argc, char* argv[])
 {
     int     opt;
@@ -2409,4 +2349,4 @@ static int run_loop(n2n_edge_t * eee )
     return(0);
 }
 
-
+#endif

@@ -232,12 +232,14 @@ void hexdump(const uint8_t * buf, size_t len)
 
 /* *********************************************** */
 
+#ifndef BUILD_FRONTEND
 void print_n2n_version() {
   printf("Welcome to n2n v.%s for %s\n"
          "Built on %s\n"
 	 "Copyright 2007-09 - http://www.ntop.org\n\n",
          n2n_sw_version, n2n_sw_osName, n2n_sw_buildDate);
 }
+#endif
 
 
 
