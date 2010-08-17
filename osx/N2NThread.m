@@ -172,6 +172,8 @@
     eee.dyn_ip_mode = 1;
     // -r
     eee.allow_routing = 1;
+    // -E
+    eee.drop_multicast=0;
 
     if(tuntap_open(&(eee.device), tuntap_dev_name, ip_mode, ip_addr, netmask, device_mac, mtu) < 0)
         return(-1);
