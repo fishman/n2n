@@ -129,7 +129,7 @@ int tuntap_open(tuntap_dev *device /* ignored */,
   int i;
   char tap_device[N2N_OSX_TAPDEVICE_SIZE];
   NSString *filename = @"~/Library/Application Support/ganesh/n2n.app/Contents/Resources/TunHelper";
-  NSArray *arguments = [NSArray arrayWithObjects:[NSString stringWithCString:device_ip encoding:NSUTF8StringEncoding], nil];
+  NSArray *arguments = [NSArray arrayWithObjects: @"-s", [NSString stringWithCString:device_ip encoding:NSUTF8StringEncoding], nil];
   NSTask *helper = [[NSTask alloc] init];
 
   [helper setLaunchPath:filename];
@@ -172,8 +172,15 @@ int tuntap_open(tuntap_dev *device /* ignored */,
     system(buf);
 #endif
 
-    snprintf(buf, sizeof(buf), "sudo ipconfig set tap%d DHCP", i);
-    system(buf);
+    helper = [[NSTask alloc] init];
+
+    arguments = [NSArray arrayWithObjects: @"-d", [NSString stringWithFormat:@"%d", i], nil];
+
+    [helper setLaunchPath:filename];
+    [helper setArguments:arguments];
+    [helper launch];
+
+    [helper waitUntilExit];
 
     traceEvent(TRACE_NORMAL, "Interface tap%d up and running (%s/%s)",
                i, device_ip, device_mask);

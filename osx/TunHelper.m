@@ -167,32 +167,55 @@ setup_ipv4(int tap_device, char *ip, char *netmask, int mtu)
     assumes(close(s) == 0);
 }
 
+#define MAX_CMDLINE_BUFFER 256
 
 int main (int argc, const char * argv[]) {
     int fd, i;
     char tap_device[N2N_OSX_TAPDEVICE_SIZE];
-    char ip_address[255];
+    char ip_address[MAX_CMDLINE_BUFFER];
+    char buf[MAX_CMDLINE_BUFFER];
+    char cmd_switch[3];
+    char tap_num[4];
     NSAutoreleasePool * pool = [[NSAutoreleasePool alloc] init];
 
-    if(argc<2){
-        NSLog(@"TunHelper, ip address is missing");
+    if(argc<3){
+        NSLog(@"TunHelper parameters incorrect");
         return -1;
     }
-    strncpy(ip_address, argv[1], sizeof(ip_address));
 
-    NSLog(@"TunHelper started!, ip: %s, %d", ip_address, argc);
-    for (i = 0; i < 255; i++) {
-        snprintf(tap_device, sizeof(tap_device), "/dev/tap%d", i);
+    // some really simple input formatting checks
+    strncpy(cmd_switch, argv[1], sizeof(cmd_switch));
+    if(cmd_switch[0] == '-'){
+        if(cmd_switch[1] == 's'){
+            strncpy(ip_address, argv[2], sizeof(ip_address));
+            NSLog(@"TunHelper started!, ip: %s, %d", ip_address, argc);
+            for (i = 0; i < 255; i++) {
+                snprintf(tap_device, sizeof(tap_device), "/dev/tap%d", i);
 
-        fd = open(tap_device, O_RDWR);
-        if(fd > 0) {
-            NSLog(@"Succesfully opened %s, fd: %d", tap_device, fd);
+                fd = open(tap_device, O_RDWR);
+                if(fd > 0) {
+                    NSLog(@"Succesfully opened %s, fd: %d", tap_device, fd);
 
-            setup_ipv4(i,ip_address, "255.255.255.0", 1400);
-            sock_server(fd);
-            break;
+                    setup_ipv4(i,ip_address, "255.255.255.0", 1400);
+                    sock_server(fd);
+                    break;
+                }
+            }
         }
+       else if(cmd_switch[1] == 'd'){
+           // 255 = maximum 4 characters 255\0
+           strncpy(tap_num, argv[2], sizeof(tap_num));
+           tap_num[3] = '\0';
+           i = atoi(tap_num);
+           if(i < 256){
+               setuid(0);
+               snprintf(buf, sizeof(buf), "ipconfig set tap%d DHCP", i);
+               NSLog(@"Executing buf %s", buf);
+               system(buf);
+           }
+       }
     }
+
 
     [pool drain];
     return i;
