@@ -3,12 +3,12 @@
 <plist version="1.0">
 <dict>
 	<key>ipAddress</key>
-	<string>10.0.0.10</string>
+	<string>0.0.0.0</string>
 	<key>communityName</key>
 	<string>mynetwork</string>
 	<key>encryptKey</key>
 	<string>encryptme</string>
 	<key>supernodeIp</key>
-	<string>flyingseagull.de:1099</string>
+	<string>188.40.33.5:1099</string>
 </dict>
 </plist>
