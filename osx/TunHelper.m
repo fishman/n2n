@@ -126,47 +126,6 @@ int sock_server(int fd_to_send){
     return fd;
 }
 
-void
-setup_ipv4(int tap_device, char *ip, char *netmask, int mtu)
-{
-    struct ifaliasreq ifra;
-    struct ifreq ifr;
-    int s;
-
-    char tap_name[TAP_IFNAME_LEN];
-    snprintf(tap_name, sizeof(tap_name), "tap%d", tap_device);
-
-    memset(&ifr, 0, sizeof(ifr));
-    strncpy(ifr.ifr_name, tap_name, IFNAMSIZ);
-
-    if ((s = socket(AF_INET, SOCK_DGRAM, 0)) == -1)
-        return;
-
-    if (assumes(ioctl(s, SIOCGIFFLAGS, &ifr) != -1)) {
-        ifr.ifr_flags |= IFF_UP;
-        assumes(ioctl(s, SIOCSIFFLAGS, &ifr) != -1);
-    }
-
-    ifr.ifr_mtu = mtu;
-    assumes(ioctl(s, SIOCSIFMTU, &ifr) != -1);
-
-    /* delete ifaddr, important! otherwise the system might lockup */
-    assumes(ioctl(s, SIOCDIFADDR, &ifr) != -1);
-
-    memset(&ifra, 0, sizeof(ifra));
-    strncpy(ifra.ifra_name, tap_name, IFNAMSIZ);
-    ((struct sockaddr_in *)&ifra.ifra_addr)->sin_family = AF_INET;
-    ((struct sockaddr_in *)&ifra.ifra_addr)->sin_addr.s_addr = inet_addr(ip);
-    ((struct sockaddr_in *)&ifra.ifra_addr)->sin_len = sizeof(struct sockaddr_in);
-    ((struct sockaddr_in *)&ifra.ifra_mask)->sin_family = AF_INET;
-    ((struct sockaddr_in *)&ifra.ifra_mask)->sin_addr.s_addr = inet_addr(netmask);
-    ((struct sockaddr_in *)&ifra.ifra_mask)->sin_len = sizeof(struct sockaddr_in);
-
-    assumes(ioctl(s, SIOCAIFADDR, &ifra) != -1);
-
-    assumes(close(s) == 0);
-}
-
 #define MAX_CMDLINE_BUFFER 256
 
 int main (int argc, const char * argv[]) {
@@ -196,7 +155,13 @@ int main (int argc, const char * argv[]) {
                 if(fd > 0) {
                     NSLog(@"Succesfully opened %s, fd: %d", tap_device, fd);
 
-                    setup_ipv4(i,ip_address, "255.255.255.0", 1400);
+                    snprintf(buf, sizeof(buf), "ifconfig tap%d %s netmask %s mtu %d up",
+                             i, ip_address, "255.255.255.0", 1400);
+                    system(buf);
+
+                    // traceEvent(TRACE_NORMAL, "Interface tap%d up and running (%s/%s)",
+                    //            i, device_ip, device_mask);
+
                     sock_server(fd);
                     break;
                 }
