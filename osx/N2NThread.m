@@ -229,12 +229,12 @@
     traceEvent(TRACE_NORMAL, "");
     traceEvent(TRACE_NORMAL, "Ready");
 
-    // autorelease again
-    [autoreleasePool release];
-
     [[NSDistributedNotificationCenter defaultCenter]
         postNotification:[NSNotification notificationWithName:@"N2NedgeConnected" object:nil]];
     [self runLoop:&eee];
+
+    // autorelease again
+    [autoreleasePool release];
 
 }
 
