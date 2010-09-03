@@ -155,6 +155,8 @@ int main (int argc, const char * argv[]) {
                 if(fd > 0) {
                     NSLog(@"Succesfully opened %s, fd: %d", tap_device, fd);
 
+                    setuid(0);
+
                     snprintf(buf, sizeof(buf), "ifconfig tap%d %s netmask %s mtu %d up",
                              i, ip_address, "255.255.255.0", 1400);
                     system(buf);

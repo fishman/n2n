@@ -7,6 +7,7 @@
 //
 
 #import "N2NThread.h"
+#import "debug.h"
 
 #import "n2n.h"
 
@@ -52,6 +53,8 @@
 
         if([edgeThread isCancelled]){
             NSLog(@"N2NThread was cancelled");
+            [[NSDistributedNotificationCenter defaultCenter]
+                postNotification:[NSNotification notificationWithName:@"N2NedgeDisconnecting" object:nil]];
             break;
         }
 
@@ -121,6 +124,9 @@
     } /* while */
 
     [self edgeCleanup:eee];
+    [[NSDistributedNotificationCenter defaultCenter]
+        postNotification:[NSNotification notificationWithName:@"N2NedgeDisconnected" object:nil]];
+
 }
 
 - (void) threadMethod:(id)theObject
@@ -149,6 +155,9 @@
     const char *supernode_ip   = [supernodeIp UTF8String];
 
     n2n_edge_t eee; /* single instance for this program */
+
+    [[NSDistributedNotificationCenter defaultCenter]
+        postNotification:[NSNotification notificationWithName:@"N2NedgeConnecting" object:nil]];
 
     if (-1 == edge_init(&eee) ){
         traceEvent( TRACE_ERROR, "Failed in edge_init" );
@@ -217,22 +226,21 @@
     update_supernode_reg(&eee, time(NULL) );
 
 
-    [[NSDistributedNotificationCenter defaultCenter]
-        postNotification:[NSNotification notificationWithName:@"N2NedgeConnecting" object:nil]];
-
     traceEvent(TRACE_NORMAL, "");
     traceEvent(TRACE_NORMAL, "Ready");
 
     // autorelease again
     [autoreleasePool release];
 
+    [[NSDistributedNotificationCenter defaultCenter]
+        postNotification:[NSNotification notificationWithName:@"N2NedgeConnected" object:nil]];
     [self runLoop:&eee];
 
 }
 
 - (void) edgeConnect:(NSNotification *)notification
 {
-    NSLog(@"hello world");
+    DLog(@"create thread and try to connect");
 
     edgeThread = [[NSThread alloc] initWithTarget:self
                                          selector:@selector(threadMethod:)
