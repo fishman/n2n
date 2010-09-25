@@ -51,10 +51,10 @@
         max_sock = max( max_sock, eee->device.fd );
 #endif
 
-        if([edgeThread isCancelled]){
+        if([self isCancelled]){
             NSLog(@"N2NThread was cancelled");
             [[NSDistributedNotificationCenter defaultCenter]
-                postNotification:[NSNotification notificationWithName:@"N2NedgeDisconnecting" object:nil]];
+                postNotification:[NSNotification notificationWithName:N2N_DISCONNECTING object:nil]];
             break;
         }
 
@@ -157,11 +157,11 @@
     n2n_edge_t eee; /* single instance for this program */
 
     [[NSDistributedNotificationCenter defaultCenter]
-        postNotification:[NSNotification notificationWithName:@"N2NedgeConnecting" object:nil]];
+        postNotification:[NSNotification notificationWithName:N2N_CONNECTING object:nil]];
 
     if (-1 == edge_init(&eee) ){
         traceEvent( TRACE_ERROR, "Failed in edge_init" );
-        exit(1);
+        return(1);
     }
 
     memset( eee.community_name, 0, N2N_COMMUNITY_SIZE );
@@ -230,7 +230,7 @@
     traceEvent(TRACE_NORMAL, "Ready");
 
     [[NSDistributedNotificationCenter defaultCenter]
-        postNotification:[NSNotification notificationWithName:@"N2NedgeConnected" object:nil]];
+        postNotification:[NSNotification notificationWithName:N2N_CONNECTED object:nil]];
     [self runLoop:&eee];
 
     // autorelease again

@@ -7,6 +7,15 @@
 #include <sys/stat.h>
 #include "minilzo.h"
 
+#if defined(_DARWIN_)
+#define N2N_CONNECT       @"N2NEdgeConnect"
+#define N2N_CONNECTING    @"N2NEdgeConnecting"
+#define N2N_CONNECTED     @"N2NEdgeConnected"
+#define N2N_DISCONNECT    @"N2NEdgeDisconnect"
+#define N2N_DISCONNECTING @"N2NEdgeDisconnecting"
+#define N2N_DISCONNECTED  @"N2NEdgeDisconnected"
+#endif
+
 #if defined(DEBUG)
 #define SOCKET_TIMEOUT_INTERVAL_SECS    5
 #define REGISTER_SUPER_INTERVAL_DFL     20 /* sec */

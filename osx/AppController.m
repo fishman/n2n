@@ -7,10 +7,9 @@
 //
 
 #import "AppController.h"
+#import "edge.h"
 
-#define PROTONET_GANESH @"com.protonet.ganesh"
-#define N2N_CONNECT_EDGE @"N2NEdgeConnect"
-#define N2N_DISCONNECT_EDGE @"N2NEdgeDisconnect"
+#define PROTONET_GANESH   @"com.protonet.ganesh"
 
 @implementation AppController
 
@@ -61,12 +60,12 @@
 
         [[NSDistributedNotificationCenter defaultCenter] addObserver:n2nThread
                                                             selector:@selector(edgeConnect:)
-                                                                name:N2N_CONNECT_EDGE
+                                                                name:N2N_CONNECT
                                                               object:nil];
 
         [[NSDistributedNotificationCenter defaultCenter] addObserver:n2nThread
                                                             selector:@selector(edgeDisconnect:)
-                                                                name:N2N_DISCONNECT_EDGE
+                                                                name:N2N_DISCONNECT
                                                               object:nil];
 
         [[NSNotificationCenter defaultCenter] addObserver:self
