@@ -4,11 +4,16 @@
 <dict>
 	<key>ipAddress</key>
 	<string>0.0.0.0</string>
-	<key>communityName</key>
-	<string>mynetwork</string>
-	<key>encryptKey</key>
-	<string>encryptme</string>
-	<key>supernodeIp</key>
-	<string>188.40.33.5:1099</string>
+	<key>networks</key>
+	<array>
+		<dict>
+			<key>supernode</key>
+			<string>188.40.33.5:1099</string>
+			<key>key</key>
+			<string>encryptme</string>
+			<key>community</key>
+			<string>mynetwork</string>
+		</dict>
+	</array>
 </dict>
 </plist>

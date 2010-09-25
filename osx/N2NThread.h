@@ -11,7 +11,7 @@
 #import "edge.h"
 
 @interface N2NThread : NSObject {
-    NSThread *edgeThread;
+    NSMutableDictionary *_threads;
 }
 
 @end

@@ -13,6 +13,18 @@
 
 @implementation N2NThread
 
+- (id)init {
+    if(self = [super init]) {
+        _threads = [[NSMutableDictionary alloc] init];
+    }
+    return self;
+}
+
+- (void)dealloc {
+    [_threads release];
+    [super dealloc];
+}
+
 - (void)edgeCleanup:(n2n_edge_t *)eee {
     send_deregister( eee, &(eee->supernode));
 
@@ -125,20 +137,19 @@
 
     [self edgeCleanup:eee];
     [[NSDistributedNotificationCenter defaultCenter]
-        postNotification:[NSNotification notificationWithName:@"N2NedgeDisconnected" object:nil]];
+        postNotification:[NSNotification notificationWithName:N2N_DISCONNECTED object:nil]];
 
 }
 
 - (void) threadMethod:(id)theObject
 {
     NSLog(@"thread started");
-
     NSAutoreleasePool	 *autoreleasePool = [[NSAutoreleasePool alloc] init];
 
     NSString *ipAddress     = [[NSUserDefaults standardUserDefaults] stringForKey:@"ipAddress"];
-    NSString *encryptKey    = [[NSUserDefaults standardUserDefaults] stringForKey:@"encryptKey"];
-    NSString *communityName = [[NSUserDefaults standardUserDefaults] stringForKey:@"communityName"];
-    NSString *supernodeIp   = [[NSUserDefaults standardUserDefaults] stringForKey:@"supernodeIp"];
+    NSString *encryptKey    = [theObject objectForKey:@"key"];
+    NSString *communityName = [theObject objectForKey:@"community"];
+    NSString *supernodeIp   = [theObject objectForKey:@"supernode"];
 
     int local_port = 0 /* any port */;
     char *tuntap_dev_name = "edge0";
@@ -240,17 +251,32 @@
 
 - (void) edgeConnect:(NSNotification *)notification
 {
-    DLog(@"create thread and try to connect");
+    [[NSUserDefaults standardUserDefaults] synchronize];
+    NSArray *networks     = [[NSUserDefaults standardUserDefaults] objectForKey:@"networks"];
+    NSDictionary *network;
+    NSThread *edgeThread;
 
-    edgeThread = [[NSThread alloc] initWithTarget:self
-                                         selector:@selector(threadMethod:)
-                                           object:nil];
-    [edgeThread start];
+    if(false && [[notification object] isKindOfClass:[NSString class]] &&
+       (network = [networks objectAtIndex:[[notification object] intValue]])!= nil){
+        NSLog(@"create thread and try to connect");
+
+        edgeThread = [[NSThread alloc] initWithTarget:self
+                                             selector:@selector(threadMethod:)
+                                               object:[NSDictionary dictionaryWithDictionary:network]];
+
+        [_threads setObject:edgeThread forKey:[notification object]];
+        [edgeThread start];
+    }
+    else {
+        [[NSDistributedNotificationCenter defaultCenter]
+            postNotification:[NSNotification notificationWithName:N2N_DISCONNECTED object:[notification object]]];
+    }
 }
 
 - (void) edgeDisconnect:(NSNotification *)notification
 {
-    [edgeThread cancel];
+    [[_threads objectForKey:[notification object]] cancel];
+    [_threads removeObjectForKey:[notification object]];
 }
 
 
