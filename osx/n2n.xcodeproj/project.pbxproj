@@ -20,6 +20,7 @@
 		27D18873107C988C001F2B3F /* TunHelper in Resources */ = {isa = PBXBuildFile; fileRef = 27D1886D107C9870001F2B3F /* TunHelper */; };
 		27D18878107C98A2001F2B3F /* TunHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = 27D18865107C9864001F2B3F /* TunHelper.m */; };
 		27FE862010849751007D8121 /* tuntap_osx_app.m in Sources */ = {isa = PBXBuildFile; fileRef = 27FE861F10849751007D8121 /* tuntap_osx_app.m */; };
+		4D10222F124F418B009E8935 /* ThreadController.m in Sources */ = {isa = PBXBuildFile; fileRef = 4D10222E124F418B009E8935 /* ThreadController.m */; };
 		4DE7A6F81214F15500FB9FC7 /* transform_aes.c in Sources */ = {isa = PBXBuildFile; fileRef = 4DE7A6F01214F12B00FB9FC7 /* transform_aes.c */; };
 		4DE7A6F91214F15600FB9FC7 /* transform_null.c in Sources */ = {isa = PBXBuildFile; fileRef = 4DE7A6F11214F12B00FB9FC7 /* transform_null.c */; };
 		4DE7A6FA1214F15700FB9FC7 /* transform_tf.c in Sources */ = {isa = PBXBuildFile; fileRef = 4DE7A6F21214F12B00FB9FC7 /* transform_tf.c */; };
@@ -63,6 +64,8 @@
 		29B97324FDCFA39411CA2CEA /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = /System/Library/Frameworks/AppKit.framework; sourceTree = "<absolute>"; };
 		29B97325FDCFA39411CA2CEA /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
 		32CA4F630368D1EE00C91783 /* n2n_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = n2n_Prefix.pch; sourceTree = "<group>"; };
+		4D10222D124F418B009E8935 /* ThreadController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ThreadController.h; sourceTree = "<group>"; };
+		4D10222E124F418B009E8935 /* ThreadController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ThreadController.m; sourceTree = "<group>"; };
 		4DE7A6F01214F12B00FB9FC7 /* transform_aes.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = transform_aes.c; path = ../transform_aes.c; sourceTree = SOURCE_ROOT; };
 		4DE7A6F11214F12B00FB9FC7 /* transform_null.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = transform_null.c; path = ../transform_null.c; sourceTree = SOURCE_ROOT; };
 		4DE7A6F21214F12B00FB9FC7 /* transform_tf.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = transform_tf.c; path = ../transform_tf.c; sourceTree = SOURCE_ROOT; };
@@ -100,6 +103,8 @@
 				275730970FD991A800B7ECE5 /* AppController.m */,
 				275730AC0FD99B8A00B7ECE5 /* N2NThread.h */,
 				275730AD0FD99B8A00B7ECE5 /* N2NThread.m */,
+				4D10222D124F418B009E8935 /* ThreadController.h */,
+				4D10222E124F418B009E8935 /* ThreadController.m */,
 			);
 			name = Classes;
 			sourceTree = "<group>";
@@ -236,6 +241,9 @@
 /* Begin PBXProject section */
 		29B97313FDCFA39411CA2CEA /* Project object */ = {
 			isa = PBXProject;
+			attributes = {
+				ORGANIZATIONNAME = Protonet.info;
+			};
 			buildConfigurationList = C01FCF4E08A954540054247B /* Build configuration list for PBXProject "n2n" */;
 			compatibilityVersion = "Xcode 3.1";
 			hasScannedForEncodings = 1;
@@ -307,6 +315,7 @@
 				4DE7A6FA1214F15700FB9FC7 /* transform_tf.c in Sources */,
 				4DE7A7041214F1AC00FB9FC7 /* n2n_keyfile.c in Sources */,
 				4DE7A7081214F1DA00FB9FC7 /* wire.c in Sources */,
+				4D10222F124F418B009E8935 /* ThreadController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

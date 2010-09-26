@@ -7,10 +7,11 @@
 //
 
 #import <Cocoa/Cocoa.h>
-#import "n2nThread.h"
+
+@class ThreadController;
 
 @interface AppController : NSObject {
-    N2NThread *n2nThread;
+    ThreadController *threadController;
     NSProxy *serverProxy;
 }
 

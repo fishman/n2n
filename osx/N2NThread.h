@@ -10,8 +10,12 @@
 
 #import "edge.h"
 
-@interface N2NThread : NSObject {
-    NSMutableDictionary *_threads;
+@interface N2NThread : NSThread {
+    NSString *_id;
+    NSDictionary *_network;
 }
+
+@property(copy) NSString *_id;
+@property(retain) NSDictionary *_network;
 
 @end

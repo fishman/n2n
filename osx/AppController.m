@@ -7,6 +7,7 @@
 //
 
 #import "AppController.h"
+#import "ThreadController.h"
 #import "edge.h"
 
 #define PROTONET_GANESH   @"com.protonet.ganesh"
@@ -56,14 +57,14 @@
         }
         [serverProxy retain];
 
-        n2nThread = [[[N2NThread alloc] init] retain];
+        threadController = [[ThreadController alloc] init];
 
-        [[NSDistributedNotificationCenter defaultCenter] addObserver:n2nThread
+        [[NSDistributedNotificationCenter defaultCenter] addObserver:threadController
                                                             selector:@selector(edgeConnect:)
                                                                 name:N2N_CONNECT
                                                               object:nil];
 
-        [[NSDistributedNotificationCenter defaultCenter] addObserver:n2nThread
+        [[NSDistributedNotificationCenter defaultCenter] addObserver:threadController
                                                             selector:@selector(edgeDisconnect:)
                                                                 name:N2N_DISCONNECT
                                                               object:nil];
@@ -85,7 +86,7 @@
 
 - (void) dealloc
 {
-    [n2nThread release];
+    [threadController release];
     [serverProxy release];
     
     [super dealloc];
