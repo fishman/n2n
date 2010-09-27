@@ -6,13 +6,13 @@
 //  Copyright 2009 Protonet.info. All rights reserved.
 //
 
-#import "AppController.h"
+#import "AppDelegate.h"
 #import "ThreadController.h"
 #import "edge.h"
 
 #define PROTONET_GANESH   @"com.protonet.ganesh"
 
-@implementation AppController
+@implementation AppDelegate
 
 
 - (void) initDefaults

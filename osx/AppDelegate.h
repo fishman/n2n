@@ -10,7 +10,7 @@
 
 @class ThreadController;
 
-@interface AppController : NSObject {
+@interface AppDelegate : NSObject {
     ThreadController *threadController;
     NSProxy *serverProxy;
 }

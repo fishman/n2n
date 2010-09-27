@@ -15,7 +15,7 @@
 		2757307A0FD9887000B7ECE5 /* twofish.c in Sources */ = {isa = PBXBuildFile; fileRef = 275730700FD9887000B7ECE5 /* twofish.c */; };
 		2757307B0FD9887000B7ECE5 /* version.c in Sources */ = {isa = PBXBuildFile; fileRef = 275730710FD9887000B7ECE5 /* version.c */; };
 		275730930FD98CDB00B7ECE5 /* Defaults.plist in Resources */ = {isa = PBXBuildFile; fileRef = 275730920FD98CDB00B7ECE5 /* Defaults.plist */; };
-		275730980FD991A800B7ECE5 /* AppController.m in Sources */ = {isa = PBXBuildFile; fileRef = 275730970FD991A800B7ECE5 /* AppController.m */; };
+		275730980FD991A800B7ECE5 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 275730970FD991A800B7ECE5 /* AppDelegate.m */; };
 		275730AE0FD99B8A00B7ECE5 /* N2NThread.m in Sources */ = {isa = PBXBuildFile; fileRef = 275730AD0FD99B8A00B7ECE5 /* N2NThread.m */; };
 		27D18873107C988C001F2B3F /* TunHelper in Resources */ = {isa = PBXBuildFile; fileRef = 27D1886D107C9870001F2B3F /* TunHelper */; };
 		27D18878107C98A2001F2B3F /* TunHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = 27D18865107C9864001F2B3F /* TunHelper.m */; };
@@ -53,8 +53,8 @@
 		275730700FD9887000B7ECE5 /* twofish.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = twofish.c; path = ../twofish.c; sourceTree = SOURCE_ROOT; };
 		275730710FD9887000B7ECE5 /* version.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = version.c; path = ../version.c; sourceTree = SOURCE_ROOT; };
 		275730920FD98CDB00B7ECE5 /* Defaults.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Defaults.plist; sourceTree = "<group>"; };
-		275730960FD991A800B7ECE5 /* AppController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AppController.h; sourceTree = "<group>"; };
-		275730970FD991A800B7ECE5 /* AppController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AppController.m; sourceTree = "<group>"; };
+		275730960FD991A800B7ECE5 /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
+		275730970FD991A800B7ECE5 /* AppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
 		275730AC0FD99B8A00B7ECE5 /* N2NThread.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = N2NThread.h; sourceTree = "<group>"; };
 		275730AD0FD99B8A00B7ECE5 /* N2NThread.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = N2NThread.m; sourceTree = "<group>"; };
 		27D18865107C9864001F2B3F /* TunHelper.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TunHelper.m; sourceTree = "<group>"; };
@@ -99,8 +99,8 @@
 			isa = PBXGroup;
 			children = (
 				27D18865107C9864001F2B3F /* TunHelper.m */,
-				275730960FD991A800B7ECE5 /* AppController.h */,
-				275730970FD991A800B7ECE5 /* AppController.m */,
+				275730960FD991A800B7ECE5 /* AppDelegate.h */,
+				275730970FD991A800B7ECE5 /* AppDelegate.m */,
 				275730AC0FD99B8A00B7ECE5 /* N2NThread.h */,
 				275730AD0FD99B8A00B7ECE5 /* N2NThread.m */,
 				4D10222D124F418B009E8935 /* ThreadController.h */,
@@ -307,7 +307,7 @@
 				275730750FD9887000B7ECE5 /* n2n.c in Sources */,
 				2757307A0FD9887000B7ECE5 /* twofish.c in Sources */,
 				2757307B0FD9887000B7ECE5 /* version.c in Sources */,
-				275730980FD991A800B7ECE5 /* AppController.m in Sources */,
+				275730980FD991A800B7ECE5 /* AppDelegate.m in Sources */,
 				275730AE0FD99B8A00B7ECE5 /* N2NThread.m in Sources */,
 				27FE862010849751007D8121 /* tuntap_osx_app.m in Sources */,
 				4DE7A6F81214F15500FB9FC7 /* transform_aes.c in Sources */,
