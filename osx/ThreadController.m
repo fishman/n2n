@@ -53,4 +53,12 @@
     [_threads removeObjectForKey:[notification object]];
 }
 
+- (void) terminateThreads
+{
+    for(N2NThread *thread in _threads)
+    {
+        [thread cancel];
+    }
+}
+
 @end

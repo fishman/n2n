@@ -41,6 +41,12 @@
        [NSApp terminate:self];
 }
 
+- (void)applicationWillTerminate:(NSNotification *)aNotification
+{
+    [threadController terminateThreads];
+}
+
+
 /**
  * register connectiondiddie and terminatenotifications
  */
